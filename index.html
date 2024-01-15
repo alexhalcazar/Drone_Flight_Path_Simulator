@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Create a rotating globe</title>
+        <meta
+            name="viewport"
+            content="initial-scale=1,maximum-scale=1,user-scalable=no"
+        />
+        <link
+            href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css"
+            rel="stylesheet"
+        />
+        <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            #map {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <style>
+            #btn-spin {
+                font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica,
+                    sans-serif;
+                background-color: #3386c0;
+                color: #fff;
+                position: absolute;
+                top: 20px;
+                left: 50%;
+                z-index: 1;
+                border: none;
+                width: 200px;
+                margin-left: -100px;
+                display: block;
+                cursor: pointer;
+                padding: 10px 20px;
+                border-radius: 3px;
+            }
+            #btn-spin:hover {
+                background-color: #4ea0da;
+            }
+        </style>
+        <div id="map"></div>
+        <button id="btn-spin">Pause rotation</button>
+        <script>
+            mapboxgl.accessToken =
+                'pk.eyJ1IjoibG92ZWRvY3RvcjM2OSIsImEiOiJjbHI1eDBhamkwM2NpMnFvczd2ODIyN2QzIn0.IJsSWOjDJyqyv2McyXizag';
+            // instantiates a new map
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/satellite-v9',
+                projection: 'globe', // Display the map as a globe, since satellite-v9 defaults to Mercator
+                zoom: 17,
+                center: [-118.148451, 34.066285] // longitute, latitude
+            });
+
+            // create the popup
+            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                'Local 7/11.'
+            );
+
+            // Create a default Marker and add it to the map.
+            new mapboxgl.Marker({
+                color: '#ff0000'
+            })
+                .setLngLat([-118.149148, 34.068001])
+                .setPopup(popup) // sets a popup on this marke
+                .addTo(map);
+
+            map.on('style.load', () => {
+                map.setFog({}); // Set the default atmosphere style
+
+                // add a source and layers for run route
+                map.addSource('run-boundaries', {
+                    type: 'geojson',
+                    data: 'data/run-boundaries.geojson'
+                });
+
+                // add a mapbox style layer
+                map.addLayer({
+                    id: 'run-boundaries-fill',
+                    type: 'line',
+                    source: 'run-boundaries',
+                    paint: {
+                        'line-color': '#0000ff',
+                        'line-width': 4
+                    }
+                })
+            });
+
+            // The following values can be changed to control rotation speed:
+
+            // At low zooms, complete a revolution every two minutes.
+            const secondsPerRevolution = 120;
+            // Above zoom level 5, do not rotate.
+            const maxSpinZoom = 5;
+            // Rotate at intermediate speeds between zoom levels 3 and 5.
+            const slowSpinZoom = 3;
+
+            let userInteracting = false;
+            let spinEnabled = true;
+
+            function spinGlobe() {
+                const zoom = map.getZoom();
+                if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
+                    let distancePerSecond = 360 / secondsPerRevolution;
+                    if (zoom > slowSpinZoom) {
+                        // Slow spinning at higher zooms
+                        const zoomDif =
+                            (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
+                        distancePerSecond *= zoomDif;
+                    }
+                    const center = map.getCenter();
+                    center.lng -= distancePerSecond;
+                    // Smoothly animate the map over one second.
+                    // When this animation is complete, it calls a 'moveend' event.
+                    map.easeTo({ center, duration: 1000, easing: (n) => n });
+                }
+            }
+
+            // Pause spinning on interaction
+            map.on('mousedown', () => {
+                userInteracting = true;
+            });
+
+            // Restart spinning the globe when interaction is complete
+            map.on('mouseup', () => {
+                userInteracting = false;
+                spinGlobe();
+            });
+
+            // These events account for cases where the mouse has moved
+            // off the map, so 'mouseup' will not be fired.
+            map.on('dragend', () => {
+                userInteracting = false;
+                spinGlobe();
+            });
+            map.on('pitchend', () => {
+                userInteracting = false;
+                spinGlobe();
+            });
+            map.on('rotateend', () => {
+                userInteracting = false;
+                spinGlobe();
+            });
+
+            // When animation is complete, start spinning if there is no ongoing interaction
+            map.on('moveend', () => {
+                spinGlobe();
+            });
+
+            document
+                .getElementById('btn-spin')
+                .addEventListener('click', (e) => {
+                    spinEnabled = !spinEnabled;
+                    if (spinEnabled) {
+                        spinGlobe();
+                        e.target.innerHTML = 'Pause rotation';
+                    } else {
+                        map.stop(); // Immediately end ongoing animation
+                        e.target.innerHTML = 'Start rotation';
+                    }
+                });
+
+            spinGlobe();
+        </script>
+    </body>
+</html>
