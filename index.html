@@ -79,21 +79,55 @@
                 map.setFog({}); // Set the default atmosphere style
 
                 // add a source and layers for run route
-                map.addSource('run-boundaries', {
+                map.addSource('alhambra', {
                     type: 'geojson',
-                    data: 'data/run-boundaries.geojson'
+                    data: 'data/alhambra.geojson'
                 });
 
                 // add a mapbox style layer
                 map.addLayer({
-                    id: 'run-boundaries-fill',
+                    id: 'alhambra-lines',
                     type: 'line',
-                    source: 'run-boundaries',
+                    source: 'alhambra',
                     paint: {
-                        'line-color': '#0000ff',
-                        'line-width': 4
-                    }
-                })
+                        'line-color': [
+                            'match',
+                            ['get', 'name'],
+                            'run-route',
+                            '#0000ff',
+                            'church',
+                            '#00ff00',
+                            '#ffff00'
+                        ],
+                        'line-width': [
+                            'match',
+                            ['get', 'name'],
+                            'run-route',
+                            4,
+                            'church',
+                            4,
+                            4
+                        ]
+                    },
+                    filter: ['in', 'name', 'run-route', 'church']
+                });
+
+                map.addLayer({
+                    id: 'alhambra-fills',
+                    type: 'fill',
+                    source: 'alhambra',
+                    paint: {
+                        'fill-color': [
+                            'match',
+                            ['get', 'name'],
+                            'school',
+                            '#ff00ff',
+                            '#ffff00'
+                        ],
+                        'fill-opacity': .5
+                    },
+                    filter: ['in', 'name', 'school']
+                });
             });
 
             // The following values can be changed to control rotation speed:
