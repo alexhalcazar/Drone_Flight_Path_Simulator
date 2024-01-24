@@ -1,0 +1,11 @@
+Model Information:
+* title:	Drone Design
+* source:	https://sketchfab.com/3d-models/drone-design-592c49fb806c42dba309e4d7a31d4a57
+* author:	3DHaupt (https://sketchfab.com/dennish2010)
+
+Model License:
+* license type:	CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions can not be distributed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Drone Design" (https://sketchfab.com/3d-models/drone-design-592c49fb806c42dba309e4d7a31d4a57) by 3DHaupt (https://sketchfab.com/dennish2010) licensed under CC-BY-NC-ND-4.0 (http://creativecommons.org/licenses/by-nc-nd/4.0/)
