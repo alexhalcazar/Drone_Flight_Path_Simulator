@@ -107,6 +107,8 @@
                 <button id="btn-school">Center on School</button>
                 <button id="btn-ruler-on">Ruler On</button>
                 <button id="btn-ruler-off">Ruler Off</button>
+                <button id="btn-move-drone">Move</button>
+                <button id="btn-reset-drone">Reset</button>
                 <button id="btn-spin">Pause rotation</button>
                 <div id="output"></div>
             </div>
@@ -151,6 +153,7 @@
 
             // global variables
             let ruler = false;
+            let drone;
 
             const distanceContainer = document.getElementById('distance');
 
@@ -171,6 +174,53 @@
 
             map.on('style.load', () => {
                 // map.setFog({}); // Set the default atmosphere style
+                // Insert the layer beneath any symbol layer.
+                const layers = map.getStyle().layers;
+                const labelLayerId = layers.find(
+                    (layer) =>
+                        layer.type === 'symbol' && layer.layout['text-field']
+                ).id;
+
+                // The 'building' layer in the Mapbox Streets
+                // vector tileset contains building height data
+                // from OpenStreetMap.
+                map.addLayer(
+                    {
+                        id: 'add-3d-buildings',
+                        source: 'composite',
+                        'source-layer': 'building',
+                        filter: ['==', 'extrude', 'true'],
+                        type: 'fill-extrusion',
+                        minzoom: 15,
+                        paint: {
+                            'fill-extrusion-color': '#aaa',
+
+                            // Use an 'interpolate' expression to
+                            // add a smooth transition effect to
+                            // the buildings as the user zooms in.
+                            'fill-extrusion-height': [
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                15,
+                                0,
+                                15.05,
+                                ['get', 'height']
+                            ],
+                            'fill-extrusion-base': [
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                15,
+                                0,
+                                15.05,
+                                ['get', 'min_height']
+                            ],
+                            'fill-extrusion-opacity': 0.6
+                        }
+                    },
+                    labelLayerId
+                );
 
                 // add a source and layers for run route
                 map.addSource('alhambra', {
@@ -251,9 +301,11 @@
                         };
 
                         tb.loadObj(options, (model) => {
-                            model.setCoords([-118.148451, 34.066285]);
-                            model.setRotation({ x: 0, y: 0, z: 241 });
+                            model.setCoords([-118.148512, 34.065868]);
+                            model.setRotation({ x: 0, y: 0, z: 250 });
                             tb.add(model);
+
+                            drone = model;
                         });
                     },
 
@@ -361,6 +413,11 @@
                 });
             });
 
+            // custom function
+            function moveDrone(point) {
+                drone.setCoords(linestring.geometry.coordinates[point]);
+            }
+
             map.on('mousemove', (e) => {
                 const features = map.queryRenderedFeatures(e.point, {
                     layers: ['measure-points']
@@ -411,6 +468,24 @@
                     ruler = false;
                     let outputDiv = document.getElementById('output');
                     outputDiv.innerHTML = 'Ruler Off';
+                });
+
+            document
+                .querySelector('#btn-move-drone')
+                .addEventListener('click', () => {
+                    // move drone object
+                    numOfPoints = linestring.geometry.coordinates.length;
+                    for (let i = 0; i < numOfPoints; i++) {
+                        setTimeout(() => {
+                            moveDrone(i);
+                        }, 2000 * i);
+                    }
+                });
+
+            document
+                .querySelector('#btn-reset-drone')
+                .addEventListener('click', () => {
+                    drone.setCoords([-118.148512, 34.065868]);
                 });
             // The following values can be changed to control rotation speed:
 
