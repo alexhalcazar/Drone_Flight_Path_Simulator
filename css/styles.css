@@ -1,0 +1,79 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    flex-grow: 1;
+}
+
+#container {
+    display: flex;
+    height: 100%;
+}
+
+#sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    height: 100%;
+    padding: 30px;
+}
+
+#btn-spin {
+    font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica,
+        sans-serif;
+    background-color: #3386c0;
+    color: #fff;
+    bottom: 10px;
+    left: 25%;
+    z-index: 1;
+    border: none;
+    width: 200px;
+    margin-left: -100px;
+    display: block;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 3px;
+    position: absolute;
+}
+#btn-spin:hover {
+    background-color: #4ea0da;
+}
+
+button[id^='btn'] {
+    font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica,
+        sans-serif;
+    background-color: #3386c0;
+}
+
+#output {
+    width: 200px;
+    height: 100px;
+    background-color: lightgray;
+    padding: 10px;
+    margin: 20px;
+    border: 1px solid gray;
+    text-align: center;
+}
+
+.distance-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+}
+
+.distance-container > * {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    display: block;
+    margin: 0;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
