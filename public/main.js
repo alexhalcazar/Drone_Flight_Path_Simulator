@@ -106,7 +106,7 @@ mapboxgl.accessToken =
                 // add a source and layers for run route
                 map.addSource('alhambra', {
                     type: 'geojson',
-                    data: 'data/alhambra.geojson'
+                    data: '../data/alhambra.geojson'
                 });
 
                 // add a mapbox style layer
@@ -174,7 +174,7 @@ mapboxgl.accessToken =
                         // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
                         const scale = 3.2;
                         const options = {
-                            obj: './drone/scene.gltf',
+                            obj: '../drone/scene.gltf',
                             type: 'gltf',
                             scale: { x: scale, y: scale, z: 2.7 },
                             units: 'meters',
