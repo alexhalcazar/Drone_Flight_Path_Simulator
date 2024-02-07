@@ -334,6 +334,7 @@ map.on('style.load', () => {
         }
     });
 
+    // test
     // Create a raycaster
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
