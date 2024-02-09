@@ -3,9 +3,10 @@ mapboxgl.accessToken =
 // instantiates a new map
 const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/light-v11',
+    style: 'mapbox://styles/mapbox/outdoors-v12',
     projection: 'globe', // Display the map as a globe, since satellite-v9 defaults to Mercator
-    zoom: 17,
+    zoom: 20,
+    pitch: 65,
     center: [-118.148451, 34.066285], // longitute, latitude
     antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
 });
@@ -35,6 +36,8 @@ let droneX = -118.148512;
 let droneY = 34.065868;
 let uasX = -118.148746;
 let uasY = 34.066381;
+let lat;
+let lng;
 
 const distanceContainer = document.getElementById('distance');
 
@@ -73,11 +76,15 @@ map.on('style.load', () => {
             type: 'fill-extrusion',
             minzoom: 15,
             paint: {
-                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'height'],
+                    0, '#C0C0C0',
+                    100, '#606060',
+                    200, '#202020'
+                ],
 
-                // Use an 'interpolate' expression to
-                // add a smooth transition effect to
-                // the buildings as the user zooms in.
                 'fill-extrusion-height': [
                     'interpolate',
                     ['linear'],
@@ -96,7 +103,7 @@ map.on('style.load', () => {
                     15.05,
                     ['get', 'min_height']
                 ],
-                'fill-extrusion-opacity': 0.6
+                'fill-extrusion-opacity': 1
             }
         },
         labelLayerId
@@ -358,7 +365,43 @@ map.on('style.load', () => {
             console.log('Intersection with 3D model:', intersects[0]);
         }
     });
+
+    map.on('click', (event) => {
+        // When the map is clicked, set the lng and lat constants
+        // equal to the lng and lat properties in the returned lngLat object.
+        lng = event.lngLat.lng;
+        lat = event.lngLat.lat;
+        
+        getElevation();
+      });
 });
+
+const lngDisplay = document.getElementById('lng');
+const latDisplay = document.getElementById('lat');
+const eleDisplay = document.getElementById('ele');
+
+async function getElevation() {
+    // Construct the API request.
+    const query = await fetch(
+      `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
+      { method: 'GET' }
+    );
+    if (query.status !== 200) return;
+    const data = await query.json();
+    // Display the longitude and latitude values.
+    lngDisplay.textContent = lng.toFixed(2);
+    latDisplay.textContent = lat.toFixed(2);
+    // Get all the returned features.
+    const allFeatures = data.features;
+    // For each returned feature, add elevation data to the elevations array.
+    const elevations = allFeatures.map((feature) => feature.properties.ele);
+    // In the elevations array, find the largest value.
+    const highestElevation = Math.max(...elevations);
+    // Display the largest elevation value.
+    eleDisplay.textContent = `${highestElevation} meters`;
+  }
+  
+  
 
 // custom function
 function moveDrone(point) {
