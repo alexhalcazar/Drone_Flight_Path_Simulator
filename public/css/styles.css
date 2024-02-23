@@ -77,3 +77,17 @@ button[id^='btn'] {
     padding: 5px 10px;
     border-radius: 3px;
 }
+
+.elevation-info {
+    position: absolute;
+    font-family: sans-serif;
+    margin-bottom: 5px;
+    margin-left: 5px;
+    padding: 5px;
+    width: 200px;
+    border: 2px solid black;
+    font-size: 20px;
+    color: #222;
+    background-color: #fff;
+  }
+  

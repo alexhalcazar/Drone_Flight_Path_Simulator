@@ -1,445 +1,529 @@
+import * as THREE from 'https://unpkg.com/three@0.109.0/build/three.module.js';
+
 mapboxgl.accessToken =
-                'pk.eyJ1IjoibG92ZWRvY3RvcjM2OSIsImEiOiJjbHI1eDBhamkwM2NpMnFvczd2ODIyN2QzIn0.IJsSWOjDJyqyv2McyXizag';
-            // instantiates a new map
-            const map = new mapboxgl.Map({
-                container: 'map',
-                style: 'mapbox://styles/mapbox/light-v11',
-                projection: 'globe', // Display the map as a globe, since satellite-v9 defaults to Mercator
-                zoom: 17,
-                center: [-118.148451, 34.066285], // longitute, latitude
-                antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
+    'pk.eyJ1IjoibG92ZWRvY3RvcjM2OSIsImEiOiJjbHI1eDBhamkwM2NpMnFvczd2ODIyN2QzIn0.IJsSWOjDJyqyv2McyXizag';
+// instantiates a new map
+
+const { MercatorCoordinate } = mapboxgl;
+
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/outdoors-v12',
+    projection: 'globe',
+    zoom: 18,
+    center: [-118.148451, 34.066285],
+    pitch: 65,
+    bearing: 120,
+    antialias: true
+});
+
+const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
+    defaultLights: true
+}));
+
+let ruler = false;
+let drone;
+let altitude = 0;
+let droneX = -118.148512;
+let droneY = 34.065868;
+let lat;
+let lng;
+
+function addBuildingToThreeJS(feature) {
+    // Extracting geometry and properties
+    const coordinates = feature.geometry.coordinates[0];
+    const properties = feature.properties;
+    const height = properties.height || 5; // Default height if not specified
+
+    console.log(coordinates);
+    console.log(properties);
+    console.log(height);
+
+    // Create Three.js mesh with this data
+    // need to write function to createBuildingMesh.
+    // const mesh = createBuildingMesh(coordinates, height);
+    // scene.add(mesh);
+}
+
+class BoxCustomLayer {
+    type = 'custom';
+    renderingMode = '3d';
+
+    constructor(id) {
+        this.id = id;
+    }
+
+    async onAdd(map, gl) {
+        this.camera = new THREE.PerspectiveCamera(
+            28,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1e6
+        );
+
+        const centerLngLat = map.getCenter();
+        this.center = MercatorCoordinate.fromLngLat(centerLngLat, 0);
+        const { x, y, z } = this.center;
+        const s = this.center.meterInMercatorCoordinateUnits();
+        const scale = new THREE.Matrix4().makeScale(s, s, -s);
+        const rotation = new THREE.Matrix4().multiplyMatrices(
+            new THREE.Matrix4().makeRotationX(-0.5 * Math.PI),
+            new THREE.Matrix4().makeRotationY(Math.PI)
+        );
+
+        this.cameraTransform = new THREE.Matrix4()
+            .multiplyMatrices(scale, rotation)
+            .setPosition(x, y, z);
+
+        this.map = map;
+        this.scene = this.makeScene();
+
+        // use the Mapbox GL JS map canvas for three.js
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: map.getCanvas(),
+            context: gl,
+            antialias: true
+        });
+
+        this.renderer.autoClear = false;
+
+        this.raycaster = new THREE.Raycaster();
+        this.raycaster.near = -1;
+        this.raycaster.far = 1e6;
+    }
+
+    makeScene() {
+        const scene = new THREE.Scene();
+        const skyColor = 0xb1e1ff; // light blue
+        const groundColor = 0xb97a20; // brownish orange
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+        scene.add(new THREE.HemisphereLight(skyColor, groundColor, 0.25));
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(-70, -70, 100).normalize();
+        // Directional lights implicitly point at (0, 0, 0).
+        scene.add(directionalLight);
+
+        const group = new THREE.Group();
+
+        group.name = '$group';
+
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        geometry.translate(-50, 10, 0);
+        const material = new THREE.MeshPhongMaterial({
+            color: 0xff0000
+        });
+        const cube = new THREE.Mesh(geometry, material);
+
+        const enemyCube = new THREE.BoxGeometry(10, 10, 10);
+        enemyCube.translate(15, 10, 0);
+        const material2 = new THREE.MeshPhongMaterial({
+            color: 0x0000ff
+        });
+        const cube2 = new THREE.Mesh(enemyCube, material2);
+
+        const blockerGeometry = new THREE.BoxGeometry(40, 40, 40);
+        blockerGeometry.translate(-20, 10, 0);
+        const blockerMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00ff00
+        });
+        const blockerCube = new THREE.Mesh(blockerGeometry, blockerMaterial);
+
+        group.add(cube);
+        group.add(cube2);
+        // I comment and uncomment the following line to determine if cube can see cube2
+        // group.add(blockerCube);
+        scene.add(group);
+
+        // adding name attributes
+        cube.name = 'cube';
+        cube2.name = 'cube2';
+        blockerCube.name = 'blocker';
+
+        const materialLine = new THREE.LineBasicMaterial({
+            color: 0xff0000
+        });
+
+        const points = [];
+        points.push(new THREE.Vector3(-50, 10, 0));
+        points.push(new THREE.Vector3(0, 10, 0));
+        points.push(new THREE.Vector3(15, 10, 0));
+
+        const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometryLine, materialLine);
+        // I use a line to visibly see what the direction of the vector will be on the map
+        // You must comment the following line out if you wish to determine if cube can see cube2
+        scene.add(line);
+
+        const raycaster = new THREE.Raycaster();
+        // Using the actual position of the cubes did not work for some reason so I had to hard code the origin of both cubes
+        raycaster.set(points[0], points[1].clone().sub(points[0]).normalize());
+        let intersections = raycaster.intersectObjects(scene.children, true);
+        // A raycaster goes through all objects so there is no way to block line of sight
+        // Therefore we added a name attribute to cube2's object and check if the first intersection is the cube2's name
+        if (intersections[0].object.name === 'cube2') {
+            console.log('entered');
+            console.log(intersections[0].object);
+            // console.log(intersections[1].object);
+        } else {
+            console.log('not entered');
+        }
+        return scene;
+    }
+
+    render(gl, matrix) {
+        this.camera.projectionMatrix = new THREE.Matrix4()
+            .fromArray(matrix)
+            .multiply(this.cameraTransform);
+        this.renderer.state.reset();
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    raycast(point, isClick) {
+        let mouse = new THREE.Vector2();
+        // // scale mouse pixel position to a percentage of the screen's width and height
+        mouse.x = (point.x / this.map.transform.width) * 2 - 1;
+        mouse.y = 1 - (point.y / this.map.transform.height) * 2;
+
+        const camInverseProjection = new THREE.Matrix4().getInverse(
+            this.camera.projectionMatrix
+        );
+        const cameraPosition = new THREE.Vector3().applyMatrix4(
+            camInverseProjection
+        );
+        const mousePosition = new THREE.Vector3(
+            mouse.x,
+            mouse.y,
+            1
+        ).applyMatrix4(camInverseProjection);
+        const viewDirection = mousePosition
+            .clone()
+            .sub(cameraPosition)
+            .normalize();
+
+        this.raycaster.set(cameraPosition, viewDirection);
+
+        // calculate objects intersecting the picking ray
+        let intersects = this.raycaster.intersectObjects(
+            this.scene.children,
+            true
+        );
+        $('#info').empty();
+        if (intersects.length) {
+            for (let i = 0; i < intersects.length; ++i) {
+                $('#info').append(' ' + JSON.stringify(intersects[i].distance));
+                isClick && console.log(intersects[i]);
+            }
+
+            isClick && $('#info').append(';');
+        }
+    }
+}
+
+let boxLayer = new BoxCustomLayer('box');
+
+map.on('load', () => {
+    map.addLayer(boxLayer);
+});
+map.on('style.load', () => {
+    map.setFog({}); // Set the default atmosphere style
+    // Insert the layer beneath any symbol layer.
+    const layers = map.getStyle().layers;
+    const labelLayerId = layers.find(
+        (layer) => layer.type === 'symbol' && layer.layout['text-field']
+    ).id;
+
+    // The 'building' layer in the Mapbox Streets
+    // vector tileset contains building height data
+    // from OpenStreetMap.
+    map.addLayer(
+        {
+            id: 'add-3d-buildings',
+            source: 'composite',
+            'source-layer': 'building',
+            filter: ['==', 'extrude', 'true'],
+            type: 'fill-extrusion',
+            minzoom: 15,
+            paint: {
+                'fill-extrusion-color': '#aaa',
+
+                // Use an 'interpolate' expression to
+                // add a smooth transition effect to
+                // the buildings as the user zooms in.
+                'fill-extrusion-height': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    15.05,
+                    ['get', 'height']
+                ],
+                'fill-extrusion-base': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    15,
+                    0,
+                    15.05,
+                    ['get', 'min_height']
+                ],
+                'fill-extrusion-opacity': 1
+            }
+        },
+        labelLayerId
+    );
+    
+    map.on('click', (event) => {
+        // When the map is clicked, set the lng and lat constants
+        // equal to the lng and lat properties in the returned lngLat object.
+        lng = event.lngLat.lng;
+        lat = event.lngLat.lat;
+        
+        getElevation();
+      });
+
+    // drone
+    map.addLayer({
+        id: 'drone',
+        type: 'custom',
+        renderingMode: '3d',
+        onAdd: function () {
+            // Creative Commons License attribution:  Metlife Building model by https://sketchfab.com/NanoRay
+            // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
+            const scale = 3.2;
+            const options = {
+                obj: '../drone/scene.gltf',
+                type: 'gltf',
+                scale: { x: scale, y: scale, z: 2.7 },
+                units: 'meters',
+                rotation: { x: 90, y: -90, z: 0 }
+            };
+
+            tb.loadObj(options, (model) => {
+                model.setCoords([droneX, droneY, altitude]);
+                model.setRotation({ x: 0, y: 0, z: 250 });
+                tb.add(model);
+
+                drone = model;
+            });
+        },
+
+        render: function () {
+            tb.update();
+        }
+    });
+
+    if (!map.getLayer('building')) {
+        console.error('Building layer not found in this style');
+        return;
+    }
+
+    // Filter for buildings with a height property
+    map.setFilter('building', ['has', 'height']);
+
+    // Access and log building data (example)
+    map.on('click', 'building', function (e) {
+        console.log("Building Properties:", e.features[0].properties);
+        console.log("Building Geometry:", e.features[0].geometry);
+        if (e.features.length >0 ){
+            const feature = e.features[0];
+            addBuildingToThreeJS(feature);
+            console.log(feature)
+        }
+    });
+
+    map.on('click', (e) => {
+        if (ruler) {
+            const features = map.queryRenderedFeatures(e.point, {
+                layers: ['measure-points']
             });
 
-            // eslint-disable-next-line no-undef
-            const tb = (window.tb = new Threebox(
-                map,
-                map.getCanvas().getContext('webgl'),
-                {
-                    defaultLights: true
-                }
-            ));
+            // Remove the linestring from the group
+            // so we can redraw it based on the points collection.
+            if (geojson.features.length > 1) geojson.features.pop();
 
-            // create the popup
-            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                'Local 7/11.'
-            );
+            // Clear the distance container to populate it with a new value.
+            distanceContainer.innerHTML = '';
 
-            // Create a default Marker and add it to the map.
-            new mapboxgl.Marker({
-                color: '#ff0000'
-            })
-                .setLngLat([-118.149148, 34.068001])
-                .setPopup(popup) // sets a popup on this marke
-                .addTo(map);
-
-            // global variables
-            let ruler = false;
-            let drone;
-
-            const distanceContainer = document.getElementById('distance');
-
-            // GeoJSON object to hold our measurement features
-            const geojson = {
-                type: 'FeatureCollection',
-                features: []
-            };
-
-            // Used to draw a line between points
-            const linestring = {
-                type: 'Feature',
-                geometry: {
-                    type: 'LineString',
-                    coordinates: []
-                }
-            };
-
-            map.on('style.load', () => {
-                map.setFog({}); // Set the default atmosphere style
-                // Insert the layer beneath any symbol layer.
-                const layers = map.getStyle().layers;
-                const labelLayerId = layers.find(
-                    (layer) =>
-                        layer.type === 'symbol' && layer.layout['text-field']
-                ).id;
-
-                // The 'building' layer in the Mapbox Streets
-                // vector tileset contains building height data
-                // from OpenStreetMap.
-                map.addLayer(
-                    {
-                        id: 'add-3d-buildings',
-                        source: 'composite',
-                        'source-layer': 'building',
-                        filter: ['==', 'extrude', 'true'],
-                        type: 'fill-extrusion',
-                        minzoom: 15,
-                        paint: {
-                            'fill-extrusion-color': '#aaa',
-
-                            // Use an 'interpolate' expression to
-                            // add a smooth transition effect to
-                            // the buildings as the user zooms in.
-                            'fill-extrusion-height': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                15,
-                                0,
-                                15.05,
-                                ['get', 'height']
-                            ],
-                            'fill-extrusion-base': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                15,
-                                0,
-                                15.05,
-                                ['get', 'min_height']
-                            ],
-                            'fill-extrusion-opacity': 0.6
-                        }
+            // If a feature was clicked, remove it from the map.
+            if (features.length) {
+                const id = features[0].properties.id;
+                geojson.features = geojson.features.filter(
+                    (point) => point.properties.id !== id
+                );
+            } else {
+                const point = {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [e.lngLat.lng, e.lngLat.lat]
                     },
-                    labelLayerId
+                    properties: {
+                        id: String(new Date().getTime())
+                    }
+                };
+
+                geojson.features.push(point);
+            }
+
+            if (geojson.features.length > 1) {
+                linestring.geometry.coordinates = geojson.features.map(
+                    (point) => point.geometry.coordinates
                 );
 
-                // add a source and layers for run route
-                map.addSource('alhambra', {
-                    type: 'geojson',
-                    data: '../data/alhambra.geojson'
-                });
+                geojson.features.push(linestring);
 
-                // add a mapbox style layer
-                map.addLayer({
-                    id: 'alhambra-lines',
-                    type: 'line',
-                    source: 'alhambra',
-                    paint: {
-                        'line-color': [
-                            'match',
-                            ['get', 'name'],
-                            'run-route',
-                            '#0000ff',
-                            'church',
-                            '#00ff00',
-                            '#ffff00'
-                        ],
-                        'line-width': [
-                            'match',
-                            ['get', 'name'],
-                            'run-route',
-                            4,
-                            'church',
-                            4,
-                            4
-                        ]
-                    },
-                    filter: ['in', 'name', 'run-route', 'church']
-                });
-
-                map.addLayer({
-                    id: 'alhambra-fills',
-                    type: 'fill',
-                    source: 'alhambra',
-                    paint: {
-                        'fill-color': [
-                            'match',
-                            ['get', 'name'],
-                            'school',
-                            '#ff00ff',
-                            'run-route',
-                            '#ff0000',
-                            'church',
-                            '#ff0000',
-                            '#ffff00'
-                        ],
-                        'fill-opacity': [
-                            'match',
-                            ['get', 'name'],
-                            'church',
-                            0,
-                            'run-route',
-                            0,
-                            0.5
-                        ]
-                    }
-                });
-
-                map.addLayer({
-                    id: 'custom-threebox-model',
-                    type: 'custom',
-                    renderingMode: '3d',
-                    onAdd: function () {
-                        // Creative Commons License attribution:  Metlife Building model by https://sketchfab.com/NanoRay
-                        // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
-                        const scale = 3.2;
-                        const options = {
-                            obj: '../drone/scene.gltf',
-                            type: 'gltf',
-                            scale: { x: scale, y: scale, z: 2.7 },
-                            units: 'meters',
-                            rotation: { x: 90, y: -90, z: 0 }
-                        };
-
-                        tb.loadObj(options, (model) => {
-                            model.setCoords([-118.148512, 34.065868]);
-                            model.setRotation({ x: 0, y: 0, z: 250 });
-                            tb.add(model);
-
-                            drone = model;
-                        });
-                    },
-
-                    render: function () {
-                        tb.update();
-                    }
-                });
-
-                map.addSource('geojson', {
-                    type: 'geojson',
-                    data: geojson
-                });
-
-                // Add styles to the map
-                map.addLayer({
-                    id: 'measure-points',
-                    type: 'circle',
-                    source: 'geojson',
-                    paint: {
-                        'circle-radius': 5,
-                        'circle-color': '#000'
-                    },
-                    filter: ['in', '$type', 'Point']
-                });
-                map.addLayer({
-                    id: 'measure-lines',
-                    type: 'line',
-                    source: 'geojson',
-                    layout: {
-                        'line-cap': 'round',
-                        'line-join': 'round'
-                    },
-                    paint: {
-                        'line-color': '#000',
-                        'line-width': 2.5
-                    },
-                    filter: ['in', '$type', 'LineString']
-                });
-
-                map.on('click', (e) => {
-                    if (ruler) {
-                        const features = map.queryRenderedFeatures(e.point, {
-                            layers: ['measure-points']
-                        });
-
-                        // Remove the linestring from the group
-                        // so we can redraw it based on the points collection.
-                        if (geojson.features.length > 1) geojson.features.pop();
-
-                        // Clear the distance container to populate it with a new value.
-                        distanceContainer.innerHTML = '';
-
-                        // If a feature was clicked, remove it from the map.
-                        if (features.length) {
-                            const id = features[0].properties.id;
-                            geojson.features = geojson.features.filter(
-                                (point) => point.properties.id !== id
-                            );
-                        } else {
-                            const point = {
-                                type: 'Feature',
-                                geometry: {
-                                    type: 'Point',
-                                    coordinates: [e.lngLat.lng, e.lngLat.lat]
-                                },
-                                properties: {
-                                    id: String(new Date().getTime())
-                                }
-                            };
-
-                            geojson.features.push(point);
-                        }
-
-                        if (geojson.features.length > 1) {
-                            linestring.geometry.coordinates =
-                                geojson.features.map(
-                                    (point) => point.geometry.coordinates
-                                );
-
-                            geojson.features.push(linestring);
-
-                            // Populate the distanceContainer with total distance
-                            const value = document.createElement('pre');
-                            const distance = turf.length(linestring);
-                            value.textContent = `Total distance: ${distance.toLocaleString()}km`;
-                            distanceContainer.appendChild(value);
-                        }
-
-                        map.getSource('geojson').setData(geojson);
-                    } else {
-                        const features = map.queryRenderedFeatures(e.point, {
-                            layers: ['alhambra-fills', 'alhambra-lines']
-                        });
-
-                        if (features.length > 0) {
-                            let outputDiv = document.getElementById('output');
-                            const selectedPolygon = features[0];
-                            const name = selectedPolygon.properties.name;
-                            outputDiv.innerHTML = name;
-                        } else {
-                            let outputDiv = document.getElementById('output');
-                            outputDiv.innerHTML = 'None';
-                        }
-                    }
-                });
-            });
-
-            // custom function
-            function moveDrone(point) {
-                drone.setCoords(linestring.geometry.coordinates[point]);
+                // Populate the distanceContainer with total distance
+                const value = document.createElement('pre');
+                const distance = turf.length(linestring);
+                value.textContent = `Total distance: ${distance.toLocaleString()}km`;
+                distanceContainer.appendChild(value);
             }
 
-            map.on('mousemove', (e) => {
-                const features = map.queryRenderedFeatures(e.point, {
-                    layers: ['measure-points']
-                });
-                // Change the cursor to a pointer when hovering over a point on the map.
-                // Otherwise cursor is a crosshair.
-                map.getCanvas().style.cursor = features.length
-                    ? 'pointer'
-                    : 'crosshair';
-            });
+            map.getSource('geojson').setData(geojson);
+        } else {
+            let outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = 'None';
+        }
+    });
+});
+map.on('mousemove', (e) => {
+    boxLayer.raycast(e.point, false);
+});
 
-            document
-                .querySelector('#btn-church')
-                .addEventListener('click', () => {
-                    map.flyTo({
-                        center: [-118.146332, 34.063521],
-                        zoom: 17
-                    });
-                });
+map.on('click', (e) => {
+    boxLayer.raycast(e.point, true);
+});
 
-            document.querySelector('#btn-run').addEventListener('click', () => {
-                map.flyTo({
-                    center: [-118.146125, 34.066507],
-                    zoom: 17
-                });
-            });
+const lngDisplay = document.getElementById('lng');
+const latDisplay = document.getElementById('lat');
+const eleDisplay = document.getElementById('ele');
 
-            document
-                .querySelector('#btn-school')
-                .addEventListener('click', () => {
-                    map.flyTo({
-                        center: [-118.151082, 34.070773],
-                        zoom: 17
-                    });
-                });
+async function getElevation() {
+    // Construct the API request.
+    const query = await fetch(
+      `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
+      { method: 'GET'
+    }
+    );
+    if (query.status !== 200) return;
+    const data = await query.json();
+    // Display the longitude and latitude values.
+    lngDisplay.textContent = lng.toFixed(8);
+    latDisplay.textContent = lat.toFixed(8);
+    // Get all the returned features.
+    const allFeatures = data.features;
+    // For each returned feature, add elevation data to the elevations array.
+    const elevations = allFeatures.map((feature) => feature.properties.ele);
+    // In the elevations array, find the largest value.
+    const highestElevation = Math.max(...elevations);
+    // Display the largest elevation value.
+    eleDisplay.textContent = `${highestElevation} meters`;
+  }
 
-            document
-                .querySelector('#btn-ruler-on')
-                .addEventListener('click', () => {
-                    ruler = true;
-                    let outputDiv = document.getElementById('output');
-                    outputDiv.innerHTML = 'Ruler On';
-                });
+// custom function
+function moveDrone(point) {
+    drone.setCoords(linestring.geometry.coordinates[point]);
+}
 
-            document
-                .querySelector('#btn-ruler-off')
-                .addEventListener('click', () => {
-                    ruler = false;
-                    let outputDiv = document.getElementById('output');
-                    outputDiv.innerHTML = 'Ruler Off';
-                });
+document.querySelector('#btn-ruler-on').addEventListener('click', () => {
+    ruler = true;
+    let outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = 'Ruler On';
+});
 
-            document
-                .querySelector('#btn-move-drone')
-                .addEventListener('click', () => {
-                    // move drone object
-                    numOfPoints = linestring.geometry.coordinates.length;
-                    for (let i = 0; i < numOfPoints; i++) {
-                        setTimeout(() => {
-                            moveDrone(i);
-                        }, 2000 * i);
-                    }
-                });
+document.querySelector('#btn-ruler-off').addEventListener('click', () => {
+    ruler = false;
+    let outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = 'Ruler Off';
+});
 
-            document
-                .querySelector('#btn-reset-drone')
-                .addEventListener('click', () => {
-                    drone.setCoords([-118.148512, 34.065868]);
-                });
-            // The following values can be changed to control rotation speed:
+document.querySelector('#btn-move-drone').addEventListener('click', () => {
+    // move drone object
+    numOfPoints = linestring.geometry.coordinates.length;
+    for (let i = 0; i < numOfPoints; i++) {
+        setTimeout(() => {
+            moveDrone(i);
+        }, 2000 * i);
+    }
+});
 
-            // At low zooms, complete a revolution every two minutes.
-            const secondsPerRevolution = 120;
-            // Above zoom level 5, do not rotate.
-            const maxSpinZoom = 5;
-            // Rotate at intermediate speeds between zoom levels 3 and 5.
-            const slowSpinZoom = 3;
+document.querySelector('#btn-reset-drone').addEventListener('click', () => {
+    drone.setCoords([-118.148512, 34.065868]);
+});
 
-            let userInteracting = false;
-            let spinEnabled = true;
+// The following values can be changed to control rotation speed:
 
-            function spinGlobe() {
-                const zoom = map.getZoom();
-                if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
-                    let distancePerSecond = 360 / secondsPerRevolution;
-                    if (zoom > slowSpinZoom) {
-                        // Slow spinning at higher zooms
-                        const zoomDif =
-                            (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
-                        distancePerSecond *= zoomDif;
-                    }
-                    const center = map.getCenter();
-                    center.lng -= distancePerSecond;
-                    // Smoothly animate the map over one second.
-                    // When this animation is complete, it calls a 'moveend' event.
-                    map.easeTo({ center, duration: 1000, easing: (n) => n });
-                }
-            }
+// At low zooms, complete a revolution every two minutes.
+const secondsPerRevolution = 120;
+// Above zoom level 5, do not rotate.
+const maxSpinZoom = 5;
+// Rotate at intermediate speeds between zoom levels 3 and 5.
+const slowSpinZoom = 3;
 
-            // Pause spinning on interaction
-            map.on('mousedown', () => {
-                userInteracting = true;
-            });
+let userInteracting = false;
+let spinEnabled = true;
 
-            // Restart spinning the globe when interaction is complete
-            map.on('mouseup', () => {
-                userInteracting = false;
-                spinGlobe();
-            });
+function spinGlobe() {
+    const zoom = map.getZoom();
+    if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
+        let distancePerSecond = 360 / secondsPerRevolution;
+        if (zoom > slowSpinZoom) {
+            // Slow spinning at higher zooms
+            const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
+            distancePerSecond *= zoomDif;
+        }
+        const center = map.getCenter();
+        center.lng -= distancePerSecond;
+        // Smoothly animate the map over one second.
+        // When this animation is complete, it calls a 'moveend' event.
+        map.easeTo({ center, duration: 1000, easing: (n) => n });
+    }
+}
 
-            // These events account for cases where the mouse has moved
-            // off the map, so 'mouseup' will not be fired.
-            map.on('dragend', () => {
-                userInteracting = false;
-                spinGlobe();
-            });
-            map.on('pitchend', () => {
-                userInteracting = false;
-                spinGlobe();
-            });
-            map.on('rotateend', () => {
-                userInteracting = false;
-                spinGlobe();
-            });
+// Pause spinning on interaction
+map.on('mousedown', () => {
+    userInteracting = true;
+});
 
-            // When animation is complete, start spinning if there is no ongoing interaction
-            map.on('moveend', () => {
-                spinGlobe();
-            });
+// Restart spinning the globe when interaction is complete
+map.on('mouseup', () => {
+    userInteracting = false;
+    spinGlobe();
+});
 
-            document
-                .getElementById('btn-spin')
-                .addEventListener('click', (e) => {
-                    spinEnabled = !spinEnabled;
-                    if (spinEnabled) {
-                        spinGlobe();
-                        e.target.innerHTML = 'Pause rotation';
-                    } else {
-                        map.stop(); // Immediately end ongoing animation
-                        e.target.innerHTML = 'Start rotation';
-                    }
-                });
+// These events account for cases where the mouse has moved
+// off the map, so 'mouseup' will not be fired.
+map.on('dragend', () => {
+    userInteracting = false;
+    spinGlobe();
+});
+map.on('pitchend', () => {
+    userInteracting = false;
+    spinGlobe();
+});
+map.on('rotateend', () => {
+    userInteracting = false;
+    spinGlobe();
+});
 
-            spinGlobe();
+// When animation is complete, start spinning if there is no ongoing interaction
+map.on('moveend', () => {
+    spinGlobe();
+});
+
+document.getElementById('btn-spin').addEventListener('click', (e) => {
+    spinEnabled = !spinEnabled;
+    if (spinEnabled) {
+        spinGlobe();
+        e.target.innerHTML = 'Pause rotation';
+    } else {
+        map.stop(); // Immediately end ongoing animation
+        e.target.innerHTML = 'Start rotation';
+    }
+});
+
+spinGlobe();

@@ -7,9 +7,11 @@
             name="viewport"
             content="initial-scale=1,maximum-scale=1,user-scalable=no"
         />
+        <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.js"></script>
+        <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.js"></script>
         <link
             href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet"
-            rel="stylesheet"
         />
         <script
             src="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.min.js"
@@ -22,19 +24,24 @@
     <body>
         <div id="container">
             <div id="sidebar">
-                <button id="btn-church">Center on Church</button>
-                <button id="btn-run">Center on Run-Route</button>
-                <button id="btn-school">Center on School</button>
                 <button id="btn-ruler-on">Ruler On</button>
                 <button id="btn-ruler-off">Ruler Off</button>
                 <button id="btn-move-drone">Move</button>
                 <button id="btn-reset-drone">Reset</button>
                 <button id="btn-spin">Pause rotation</button>
                 <div id="output"></div>
+                <div class="elevation-info">
+                    <div>Longitude: <span id='lng'></span></div>
+                    <div>Latitude: <span id='lat'></span></div>
+                    <div>Elevation: <span id='ele'></span></div>
+                </div>
             </div>
+
             <div id="map"></div>
+            <div id="info"></div>
+        
             <div id="distance" class="distance-container"></div>
         </div>
-        <script src="main.js"></script>
+        <script type="module" src="main.js"></script>
     </body>
 </html>
