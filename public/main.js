@@ -1,61 +1,232 @@
+import * as THREE from 'https://unpkg.com/three@0.109.0/build/three.module.js';
+
 mapboxgl.accessToken =
     'pk.eyJ1IjoibG92ZWRvY3RvcjM2OSIsImEiOiJjbHI1eDBhamkwM2NpMnFvczd2ODIyN2QzIn0.IJsSWOjDJyqyv2McyXizag';
 // instantiates a new map
+
+const { MercatorCoordinate } = mapboxgl;
+
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/outdoors-v12',
-    projection: 'globe', // Display the map as a globe, since satellite-v9 defaults to Mercator
-    zoom: 20,
+    projection: 'globe',
+    zoom: 18,
+    center: [-118.148451, 34.066285],
     pitch: 65,
-    center: [-118.148451, 34.066285], // longitute, latitude
-    antialias: true // create the gl context with MSAA antialiasing, so custom layers are antialiased
+    bearing: 120,
+    antialias: true
 });
 
-// eslint-disable-next-line no-undef
 const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
-// create the popup
-const popup = new mapboxgl.Popup({ offset: 25 }).setText('Local 7/11.');
-
-// Create a default Marker and add it to the map.
-new mapboxgl.Marker({
-    color: '#ff0000'
-})
-    .setLngLat([-118.149148, 34.068001])
-    .setPopup(popup) // sets a popup on this marke
-    .addTo(map);
-
-// global variables
 let ruler = false;
 let drone;
-let uas;
 let altitude = 0;
 let droneX = -118.148512;
 let droneY = 34.065868;
-let uasX = -118.148746;
-let uasY = 34.066381;
 let lat;
 let lng;
 
-const distanceContainer = document.getElementById('distance');
+function addBuildingToThreeJS(feature) {
+    // Extracting geometry and properties
+    const coordinates = feature.geometry.coordinates[0];
+    const properties = feature.properties;
+    const height = properties.height || 5; // Default height if not specified
 
-// GeoJSON object to hold our measurement features
-const geojson = {
-    type: 'FeatureCollection',
-    features: []
-};
+    console.log(coordinates);
+    console.log(properties);
+    console.log(height);
 
-// Used to draw a line between points
-const linestring = {
-    type: 'Feature',
-    geometry: {
-        type: 'LineString',
-        coordinates: []
+    // Create Three.js mesh with this data
+    // need to write function to createBuildingMesh.
+    // const mesh = createBuildingMesh(coordinates, height);
+    // scene.add(mesh);
+}
+
+class BoxCustomLayer {
+    type = 'custom';
+    renderingMode = '3d';
+
+    constructor(id) {
+        this.id = id;
     }
-};
 
+    async onAdd(map, gl) {
+        this.camera = new THREE.PerspectiveCamera(
+            28,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1e6
+        );
+
+        const centerLngLat = map.getCenter();
+        this.center = MercatorCoordinate.fromLngLat(centerLngLat, 0);
+        const { x, y, z } = this.center;
+        const s = this.center.meterInMercatorCoordinateUnits();
+        const scale = new THREE.Matrix4().makeScale(s, s, -s);
+        const rotation = new THREE.Matrix4().multiplyMatrices(
+            new THREE.Matrix4().makeRotationX(-0.5 * Math.PI),
+            new THREE.Matrix4().makeRotationY(Math.PI)
+        );
+
+        this.cameraTransform = new THREE.Matrix4()
+            .multiplyMatrices(scale, rotation)
+            .setPosition(x, y, z);
+
+        this.map = map;
+        this.scene = this.makeScene();
+
+        // use the Mapbox GL JS map canvas for three.js
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: map.getCanvas(),
+            context: gl,
+            antialias: true
+        });
+
+        this.renderer.autoClear = false;
+
+        this.raycaster = new THREE.Raycaster();
+        this.raycaster.near = -1;
+        this.raycaster.far = 1e6;
+    }
+
+    makeScene() {
+        const scene = new THREE.Scene();
+        const skyColor = 0xb1e1ff; // light blue
+        const groundColor = 0xb97a20; // brownish orange
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+        scene.add(new THREE.HemisphereLight(skyColor, groundColor, 0.25));
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(-70, -70, 100).normalize();
+        // Directional lights implicitly point at (0, 0, 0).
+        scene.add(directionalLight);
+
+        const group = new THREE.Group();
+
+        group.name = '$group';
+
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        geometry.translate(-50, 10, 0);
+        const material = new THREE.MeshPhongMaterial({
+            color: 0xff0000
+        });
+        const cube = new THREE.Mesh(geometry, material);
+
+        const enemyCube = new THREE.BoxGeometry(10, 10, 10);
+        enemyCube.translate(15, 10, 0);
+        const material2 = new THREE.MeshPhongMaterial({
+            color: 0x0000ff
+        });
+        const cube2 = new THREE.Mesh(enemyCube, material2);
+
+        const blockerGeometry = new THREE.BoxGeometry(40, 40, 40);
+        blockerGeometry.translate(-20, 10, 0);
+        const blockerMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00ff00
+        });
+        const blockerCube = new THREE.Mesh(blockerGeometry, blockerMaterial);
+
+        group.add(cube);
+        group.add(cube2);
+        // I comment and uncomment the following line to determine if cube can see cube2
+        // group.add(blockerCube);
+        scene.add(group);
+
+        // adding name attributes
+        cube.name = 'cube';
+        cube2.name = 'cube2';
+        blockerCube.name = 'blocker';
+
+        const materialLine = new THREE.LineBasicMaterial({
+            color: 0xff0000
+        });
+
+        const points = [];
+        points.push(new THREE.Vector3(-50, 10, 0));
+        points.push(new THREE.Vector3(0, 10, 0));
+        points.push(new THREE.Vector3(15, 10, 0));
+
+        const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometryLine, materialLine);
+        // I use a line to visibly see what the direction of the vector will be on the map
+        // You must comment the following line out if you wish to determine if cube can see cube2
+        scene.add(line);
+
+        const raycaster = new THREE.Raycaster();
+        // Using the actual position of the cubes did not work for some reason so I had to hard code the origin of both cubes
+        raycaster.set(points[0], points[1].clone().sub(points[0]).normalize());
+        let intersections = raycaster.intersectObjects(scene.children, true);
+        // A raycaster goes through all objects so there is no way to block line of sight
+        // Therefore we added a name attribute to cube2's object and check if the first intersection is the cube2's name
+        if (intersections[0].object.name === 'cube2') {
+            console.log('entered');
+            console.log(intersections[0].object);
+            // console.log(intersections[1].object);
+        } else {
+            console.log('not entered');
+        }
+        return scene;
+    }
+
+    render(gl, matrix) {
+        this.camera.projectionMatrix = new THREE.Matrix4()
+            .fromArray(matrix)
+            .multiply(this.cameraTransform);
+        this.renderer.state.reset();
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    raycast(point, isClick) {
+        let mouse = new THREE.Vector2();
+        // // scale mouse pixel position to a percentage of the screen's width and height
+        mouse.x = (point.x / this.map.transform.width) * 2 - 1;
+        mouse.y = 1 - (point.y / this.map.transform.height) * 2;
+
+        const camInverseProjection = new THREE.Matrix4().getInverse(
+            this.camera.projectionMatrix
+        );
+        const cameraPosition = new THREE.Vector3().applyMatrix4(
+            camInverseProjection
+        );
+        const mousePosition = new THREE.Vector3(
+            mouse.x,
+            mouse.y,
+            1
+        ).applyMatrix4(camInverseProjection);
+        const viewDirection = mousePosition
+            .clone()
+            .sub(cameraPosition)
+            .normalize();
+
+        this.raycaster.set(cameraPosition, viewDirection);
+
+        // calculate objects intersecting the picking ray
+        let intersects = this.raycaster.intersectObjects(
+            this.scene.children,
+            true
+        );
+        $('#info').empty();
+        if (intersects.length) {
+            for (let i = 0; i < intersects.length; ++i) {
+                $('#info').append(' ' + JSON.stringify(intersects[i].distance));
+                isClick && console.log(intersects[i]);
+            }
+
+            isClick && $('#info').append(';');
+        }
+    }
+}
+
+let boxLayer = new BoxCustomLayer('box');
+
+map.on('load', () => {
+    map.addLayer(boxLayer);
+});
 map.on('style.load', () => {
     map.setFog({}); // Set the default atmosphere style
     // Insert the layer beneath any symbol layer.
@@ -76,15 +247,11 @@ map.on('style.load', () => {
             type: 'fill-extrusion',
             minzoom: 15,
             paint: {
-                'fill-extrusion-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'height'],
-                    0, '#C0C0C0',
-                    100, '#606060',
-                    200, '#202020'
-                ],
+                'fill-extrusion-color': '#aaa',
 
+                // Use an 'interpolate' expression to
+                // add a smooth transition effect to
+                // the buildings as the user zooms in.
                 'fill-extrusion-height': [
                     'interpolate',
                     ['linear'],
@@ -108,68 +275,15 @@ map.on('style.load', () => {
         },
         labelLayerId
     );
-
-    // add a source and layers for run route
-    map.addSource('alhambra', {
-        type: 'geojson',
-        data: '../data/alhambra.geojson'
-    });
-
-    // add a mapbox style layer
-    map.addLayer({
-        id: 'alhambra-lines',
-        type: 'line',
-        source: 'alhambra',
-        paint: {
-            'line-color': [
-                'match',
-                ['get', 'name'],
-                'run-route',
-                '#0000ff',
-                'church',
-                '#00ff00',
-                '#ffff00'
-            ],
-            'line-width': [
-                'match',
-                ['get', 'name'],
-                'run-route',
-                4,
-                'church',
-                4,
-                4
-            ]
-        },
-        filter: ['in', 'name', 'run-route', 'church']
-    });
-
-    map.addLayer({
-        id: 'alhambra-fills',
-        type: 'fill',
-        source: 'alhambra',
-        paint: {
-            'fill-color': [
-                'match',
-                ['get', 'name'],
-                'school',
-                '#ff00ff',
-                'run-route',
-                '#ff0000',
-                'church',
-                '#ff0000',
-                '#ffff00'
-            ],
-            'fill-opacity': [
-                'match',
-                ['get', 'name'],
-                'church',
-                0,
-                'run-route',
-                0,
-                0.5
-            ]
-        }
-    });
+    
+    map.on('click', (event) => {
+        // When the map is clicked, set the lng and lat constants
+        // equal to the lng and lat properties in the returned lngLat object.
+        lng = event.lngLat.lng;
+        lat = event.lngLat.lat;
+        
+        getElevation();
+      });
 
     // drone
     map.addLayer({
@@ -202,77 +316,23 @@ map.on('style.load', () => {
         }
     });
 
-    // counter UAS
-    map.addLayer({
-        id: 'UAS',
-        type: 'custom',
-        renderingMode: '3d',
-        onAdd: function () {
-            // Creative Commons License attribution:  Metlife Building model by https://sketchfab.com/NanoRay
-            // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
-            const scale = 3.2;
-            let altitude = 0;
-            const options = {
-                obj: '../drone/scene.gltf',
-                type: 'gltf',
-                scale: { x: scale, y: scale, z: 2.7 },
-                units: 'meters',
-                rotation: { x: 90, y: -90, z: 0 }
-            };
+    if (!map.getLayer('building')) {
+        console.error('Building layer not found in this style');
+        return;
+    }
 
-            tb.loadObj(options, (model) => {
-                model.setCoords([uasX, uasY, altitude]);
-                model.setRotation({ x: 0, y: 0, z: 250 });
-                tb.add(model);
+    // Filter for buildings with a height property
+    map.setFilter('building', ['has', 'height']);
 
-                uas = model;
-
-                // Raycasting
-                // const raycaster = new THREE.Raycaster();
-                // const origin = new THREE.Vector3(droneX, droneY, altitude);
-                // const destination = new THREE.Vector3(uasX, uasY, altitude);
-
-                // destination.sub(origin).normalize();
-
-                // set the raycaster properties
-                // raycaster.set(origin, destination);
-                // const intersections = raycaster.intersectObject(uas, true);
-            });
-        },
-
-        render: function () {
-            tb.update();
+    // Access and log building data (example)
+    map.on('click', 'building', function (e) {
+        console.log("Building Properties:", e.features[0].properties);
+        console.log("Building Geometry:", e.features[0].geometry);
+        if (e.features.length >0 ){
+            const feature = e.features[0];
+            addBuildingToThreeJS(feature);
+            console.log(feature)
         }
-    });
-    map.addSource('geojson', {
-        type: 'geojson',
-        data: geojson
-    });
-
-    // Add styles to the map
-    map.addLayer({
-        id: 'measure-points',
-        type: 'circle',
-        source: 'geojson',
-        paint: {
-            'circle-radius': 5,
-            'circle-color': '#000'
-        },
-        filter: ['in', '$type', 'Point']
-    });
-    map.addLayer({
-        id: 'measure-lines',
-        type: 'line',
-        source: 'geojson',
-        layout: {
-            'line-cap': 'round',
-            'line-join': 'round'
-        },
-        paint: {
-            'line-color': '#000',
-            'line-width': 2.5
-        },
-        filter: ['in', '$type', 'LineString']
     });
 
     map.on('click', (e) => {
@@ -325,55 +385,17 @@ map.on('style.load', () => {
 
             map.getSource('geojson').setData(geojson);
         } else {
-            const features = map.queryRenderedFeatures(e.point, {
-                layers: ['alhambra-fills', 'alhambra-lines']
-            });
-
-            if (features.length > 0) {
-                let outputDiv = document.getElementById('output');
-                const selectedPolygon = features[0];
-                const name = selectedPolygon.properties.name;
-                outputDiv.innerHTML = name;
-            } else {
-                let outputDiv = document.getElementById('output');
+            let outputDiv = document.getElementById('output');
                 outputDiv.innerHTML = 'None';
-            }
         }
     });
+});
+map.on('mousemove', (e) => {
+    boxLayer.raycast(e.point, false);
+});
 
-    // test
-    // Create a raycaster
-    var raycaster = new THREE.Raycaster();
-    var mouse = new THREE.Vector2();
-
-    // Assuming you have a Mapbox GL JS map instance
-    map.on('click', function (event) {
-        // Convert mouse coordinates to normalized device coordinates
-        mouse.x = (event.point.x / map.getCanvas().width) * 2 - 1;
-        mouse.y = -(event.point.y / map.getCanvas().height) * 2 + 1;
-
-        console.log(mouse.x, mouse.y)
-        // Set up the raycaster
-        raycaster.setFromCamera(mouse, tb.camera, 0, 50);
-
-        // Check for intersections
-        var intersects = raycaster.intersectObject(uas, true); // Assuming 'uas' is your 3D model
-        //var intersects = raycaster.intersectObject(uas);
-
-        if (intersects.length > 0) {
-            // Intersection detected, perform actions
-            console.log('Intersection with 3D model:', intersects[0]);
-        }
-    });
-
-    map.on('click', (event) => {
-        // When the map is clicked, set the lng and lat constants
-        // equal to the lng and lat properties in the returned lngLat object.
-        lng = event.lngLat.lng;
-        lat = event.lngLat.lat;
-        
-        getElevation();
-      });
+map.on('click', (e) => {
+    boxLayer.raycast(e.point, true);
 });
 
 const lngDisplay = document.getElementById('lng');
@@ -384,13 +406,14 @@ async function getElevation() {
     // Construct the API request.
     const query = await fetch(
       `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
-      { method: 'GET' }
+      { method: 'GET'
+    }
     );
     if (query.status !== 200) return;
     const data = await query.json();
     // Display the longitude and latitude values.
-    lngDisplay.textContent = lng.toFixed(2);
-    latDisplay.textContent = lat.toFixed(2);
+    lngDisplay.textContent = lng.toFixed(8);
+    latDisplay.textContent = lat.toFixed(8);
     // Get all the returned features.
     const allFeatures = data.features;
     // For each returned feature, add elevation data to the elevations array.
@@ -400,43 +423,11 @@ async function getElevation() {
     // Display the largest elevation value.
     eleDisplay.textContent = `${highestElevation} meters`;
   }
-  
-  
 
 // custom function
 function moveDrone(point) {
     drone.setCoords(linestring.geometry.coordinates[point]);
 }
-
-map.on('mousemove', (e) => {
-    const features = map.queryRenderedFeatures(e.point, {
-        layers: ['measure-points']
-    });
-    // Change the cursor to a pointer when hovering over a point on the map.
-    // Otherwise cursor is a crosshair.
-    map.getCanvas().style.cursor = features.length ? 'pointer' : 'crosshair';
-});
-
-document.querySelector('#btn-church').addEventListener('click', () => {
-    map.flyTo({
-        center: [-118.146332, 34.063521],
-        zoom: 17
-    });
-});
-
-document.querySelector('#btn-run').addEventListener('click', () => {
-    map.flyTo({
-        center: [-118.146125, 34.066507],
-        zoom: 17
-    });
-});
-
-document.querySelector('#btn-school').addEventListener('click', () => {
-    map.flyTo({
-        center: [-118.151082, 34.070773],
-        zoom: 17
-    });
-});
 
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
