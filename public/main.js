@@ -21,6 +21,24 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
+const distanceContainer = document.getElementById('distance');
+
+//GeoJSON object to hold our measurement features
+const geojson = {
+    type: 'FeatureCollection',
+    features: []
+};
+
+// Used to draw a line between points
+const linestring = {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: []
+    }
+};
+
+
 const navControl = new mapboxgl.NavigationControl({
     showZoom: false
 });
@@ -34,6 +52,7 @@ let droneX = -118.148512;
 let droneY = 34.065868;
 let lat;
 let lng;
+let numOfPoints;
 
 function addBuildingToThreeJS(feature) {
     // Extracting geometry and properties
@@ -253,7 +272,19 @@ map.on('style.load', () => {
             type: 'fill-extrusion',
             minzoom: 15,
             paint: {
-                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-color': [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "height"],
+                    7.5,
+                    "rgba(242, 243, 243, 0.21)",
+                    50,
+                    "#cad3d8",
+                    100,
+                    "#6c91ac",
+                    200,
+                    "#002952"
+                  ],
 
                 // Use an 'interpolate' expression to
                 // add a smooth transition effect to
@@ -340,6 +371,40 @@ map.on('style.load', () => {
             console.log(feature)
         }
     });
+
+    map.on('load', () => {
+        map.addSource('geojson', {
+            'type': 'geojson',
+            'data': geojson
+        });
+
+        // Add styles to the map
+        map.addLayer({
+            id: 'measure-points',
+            type: 'circle',
+            source: 'geojson',
+            paint: {
+                'circle-radius': 5,
+                'circle-color': '#000'
+            },
+            filter: ['in', '$type', 'Point']
+        });
+        map.addLayer({
+            id: 'measure-lines',
+            type: 'line',
+            source: 'geojson',
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#000',
+                'line-width': 2.5
+            },
+            filter: ['in', '$type', 'LineString']
+        });
+    });
+
 
     map.on('click', (e) => {
         if (ruler) {
@@ -533,3 +598,335 @@ document.getElementById('btn-spin').addEventListener('click', (e) => {
 });
 
 spinGlobe();
+
+// TESTING CODE
+
+// var marker = new mapboxgl.Marker();
+
+// function add_marker (event) {
+//   var coordinates = event.lngLat;
+// //   console.log('Lng:', coordinates.lng, 'Lat:', coordinates.lat);
+//   marker.setLngLat(coordinates).addTo(map);
+// }
+
+// map.on('click', add_marker);
+
+// Smooth animation for a line going across the map
+
+const currentDate = new Date();
+const currentTime = currentDate.getTime();
+map.on("style.load", () => {
+    const animatedLine = {
+    type: "Feature",
+    properties: {
+      stroke: "#555555",
+      "stroke-width": 2,
+      "stroke-opacity": 1
+    },
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [-118.14848769, 34.06582944],
+        [-118.14513433, 34.06006182]
+      ]
+    }
+};
+
+  map.addSource("animated-line", {
+    type: "geojson",
+    data: animatedLine,
+    // Line metrics is required to use the 'line-progress' property
+    lineMetrics: true
+  });
+
+  map.addLayer({
+    id: "animated-line-line",
+    type: "line",
+    source: "animated-line",
+    paint: {
+      "line-color": "rgba(0,0,0,0)",
+      "line-width": 8,
+      "line-opacity": 0.7
+    }
+  });
+
+//-------- Moved into click funtion -----------//
+
+//   let startTime;
+//   const duration = 10000;
+
+//   const frame = (time) => {
+//     if (!startTime) startTime = time;
+//     const animationPhase = (time - startTime) / duration;
+    
+
+//     // Reduce the visible length of the line by using a line-gradient to cutoff the line
+//     // animationPhase is a value between 0 and 1 that reprents the progress of the animation
+//     map.setPaintProperty("animated-line-line", "line-gradient", [
+//       "step",
+//       ["line-progress"],
+//       "yellow",
+//       animationPhase,
+//       "rgba(0, 0, 0, 0)"
+//     ]);
+
+//     if (animationPhase > 1) {
+//       return;
+//     }
+//     window.requestAnimationFrame(frame);
+//   };
+  
+//   window.requestAnimationFrame(frame);
+
+//   // repeat
+//   setInterval(() => {
+//     startTime = undefined;
+//     window.requestAnimationFrame(frame);
+//   }, duration + 1500);
+});
+
+//Changing button from play/pause for line animation
+// let animateButton = document.getElementById("btn-animate");
+
+// function changeText() {
+//     if (animateButton.innerText == "Play") { // check if text inside is "Play"
+//         animateButton.innerText == "Pause";    // If so, change to "Pause"
+//       } else {
+//         animateButton.innerText == "Play";
+//       }
+// }
+
+//------ Plays the animation when the button "Play" is clicked ---------//
+let running = false;
+document.querySelector('#btn-animate').addEventListener('click', () => {
+    let animateButton = document.querySelector('#btn-animate');
+    if (animateButton.textContent == "Play") { // check if text inside is "Play"
+        animateButton.textContent = "Pause";    // If so, change to "Pause"
+        running = true;
+    } else {
+        animateButton.textContent = "Play";
+        running = false;
+    }
+    console.log("clicked");
+
+    if (running == true) {
+        let startTime;
+    const duration = 10000;
+    const frame = (time) => {
+        if (!startTime) startTime = time;
+        const animationPhase = (time - startTime) / duration;
+        // Reduce the visible length of the line by using a line-gradient to cutoff the line
+        // animationPhase is a value between 0 and 1 that reprents the progress of the animation
+        map.setPaintProperty("animated-line-line", "line-gradient", [
+            "step",
+            ["line-progress"],
+            "yellow",
+            animationPhase,
+            "rgba(0, 0, 0, 0)"
+        ]);
+        if (animationPhase > 1) {
+            return;
+        }
+        window.requestAnimationFrame(frame);
+    };
+    window.requestAnimationFrame(frame);
+    
+    // repeat the animation
+    setInterval(() => {
+        startTime = undefined;
+        window.requestAnimationFrame(frame);
+    }, 
+    duration + 1500);
+    }
+    // let startTime;
+    // const duration = 10000;
+    // const frame = (time) => {
+    //     if (!startTime) startTime = time;
+    //     const animationPhase = (time - startTime) / duration;
+    //     // Reduce the visible length of the line by using a line-gradient to cutoff the line
+    //     // animationPhase is a value between 0 and 1 that reprents the progress of the animation
+    //     map.setPaintProperty("animated-line-line", "line-gradient", [
+    //         "step",
+    //         ["line-progress"],
+    //         "yellow",
+    //         animationPhase,
+    //         "rgba(0, 0, 0, 0)"
+    //     ]);
+    //     if (animationPhase > 1) {
+    //         return;
+    //     }
+    //     window.requestAnimationFrame(frame);
+    // };
+    // window.requestAnimationFrame(frame);
+    
+    // // repeat the animation
+    // setInterval(() => {
+    //     startTime = undefined;
+    //     window.requestAnimationFrame(frame);
+    // }, 
+    // duration + 1500);
+
+
+
+
+    // San Francisco
+    const origin = [-122.414, 37.776];
+
+    // Washington DC
+    const destination = [-77.032, 38.913];
+
+    // A simple line from origin to destination.
+    const route = {
+        'type': 'FeatureCollection',
+        'features': [
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [origin, destination]
+                }
+            }
+        ]
+    };
+
+    // A single point that animates along the route.
+    // Coordinates are initially set to origin.
+    const point = {
+        'type': 'FeatureCollection',
+        'features': [
+            {
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': origin
+                }
+            }
+        ]
+    };
+
+    // Calculate the distance in kilometers between route start/end point.
+    const lineDistance = turf.length(route.features[0]);
+
+    const arc = [];
+
+    // Number of steps to use in the arc and animation, more steps means
+    // a smoother arc and animation, but too many steps will result in a
+    // low frame rate
+    const steps = 500;
+
+    // Draw an arc between the `origin` & `destination` of the two points
+    for (let i = 0; i < lineDistance; i += lineDistance / steps) {
+        const segment = turf.along(route.features[0], i);
+        arc.push(segment.geometry.coordinates);
+    }
+
+    // Update the route with calculated arc coordinates
+    route.features[0].geometry.coordinates = arc;
+
+    // Used to increment the value of the point measurement against the route.
+    let counter = 0;
+
+    map.on('load', () => {
+        // Add a source and layer displaying a point which will be animated in a circle.
+        map.addSource('route', {
+            'type': 'geojson',
+            'data': route
+        });
+
+        map.addSource('point', {
+            'type': 'geojson',
+            'data': point
+        });
+
+        map.addLayer({
+            'id': 'route',
+            'source': 'route',
+            'type': 'line',
+            'paint': {
+                'line-width': 2,
+                'line-color': '#007cbf'
+            }
+        });
+
+        map.addLayer({
+            'id': 'point',
+            'source': 'point',
+            'type': 'symbol',
+            'layout': {
+                // This icon is a part of the Mapbox Streets style.
+                // To view all images available in a Mapbox style, open
+                // the style in Mapbox Studio and click the "Images" tab.
+                // To add a new image to the style at runtime see
+                // https://docs.mapbox.com/mapbox-gl-js/example/add-image/
+                'icon-image': 'airport',
+                'icon-size': 1.5,
+                'icon-rotate': ['get', 'bearing'],
+                'icon-rotation-alignment': 'map',
+                'icon-allow-overlap': true,
+                'icon-ignore-placement': true
+            }
+        });
+        let running = false;
+        function animate() {
+            running = true;
+            document.getElementById('replay').disabled = true;
+            const start =
+                route.features[0].geometry.coordinates[
+                    counter >= steps ? counter - 1 : counter
+                ];
+            const end =
+                route.features[0].geometry.coordinates[
+                    counter >= steps ? counter : counter + 1
+                ];
+            if (!start || !end) {
+                running = false;
+                document.getElementById('replay').disabled = false;
+                return;
+            }
+            // Update point geometry to a new position based on counter denoting
+            // the index to access the arc
+            point.features[0].geometry.coordinates =
+                route.features[0].geometry.coordinates[counter];
+
+            // Calculate the bearing to ensure the icon is rotated to match the route arc
+            // The bearing is calculated between the current point and the next point, except
+            // at the end of the arc, which uses the previous point and the current point
+            point.features[0].properties.bearing = turf.bearing(
+                turf.point(start),
+                turf.point(end)
+            );
+
+            // Update the source with this new data
+            map.getSource('point').setData(point);
+
+            // Request the next frame of animation as long as the end has not been reached
+            if (counter < steps) {
+                requestAnimationFrame(animate);
+            }
+
+            counter = counter + 1;
+        }
+
+        document.getElementById('replay').addEventListener('click', () => {
+            if (running) {
+                void 0;
+            } else {
+                // Set the coordinates of the original point back to origin
+                point.features[0].geometry.coordinates = origin;
+
+                // Update the source layer
+                map.getSource('point').setData(point);
+
+                // Reset the counter
+                counter = 0;
+
+                // Restart the animation
+                animate(counter);
+            }
+        });
+
+        // Start the animation
+        animate(counter);
+    });
+});
