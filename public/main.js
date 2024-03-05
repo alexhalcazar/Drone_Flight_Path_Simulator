@@ -21,6 +21,12 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
+const navControl = new mapboxgl.NavigationControl({
+    showZoom: false
+});
+
+map.addControl(navControl, 'top-right');
+
 let ruler = false;
 let drone;
 let altitude = 0;
