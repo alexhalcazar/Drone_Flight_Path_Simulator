@@ -21,12 +21,6 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
-const navControl = new mapboxgl.NavigationControl({
-    showZoom: false
-});
-
-map.addControl(navControl, 'top-right');
-
 let ruler = false;
 let drone;
 let altitude = 0;
@@ -82,6 +76,33 @@ function convertLonLat(lon, lat) {
     return {x, y, z};
 }
 
+
+
+//Range
+var arr = [];
+
+map.on('load', 'building', function (e) {
+    console.log("loaded");
+    for(let i=0;i<e.features.length;i++){
+        //470751200 and 470752300
+        if(e.features[i].id>=470751200 && e.features[i].id<=470752300){
+            //console.log("feature",e.features[i].geometry.coordinates);
+            //const coord = e.features[i].geometry;
+            const coord = e.features[i];
+            arr.push(coord);
+
+        }  
+    }
+    
+    localStorage.setItem('myStorage', JSON.stringify(arr));
+    var obj = JSON.parse(localStorage.getItem('myStorage'));
+    
+});
+var obj = JSON.parse(localStorage.getItem('myStorage'));
+//console.log(obj[0].properties.height);
+
+
+
 class BoxCustomLayer {
     type = 'custom';
     renderingMode = '3d';
@@ -130,6 +151,8 @@ class BoxCustomLayer {
     }
 
     makeScene() {
+
+        
         const scene = new THREE.Scene();
         const skyColor = 0xb1e1ff; // light blue
         const groundColor = 0xb97a20; // brownish orange
@@ -171,7 +194,7 @@ class BoxCustomLayer {
         group.add(cube2);
         // I comment and uncomment the following line to determine if cube can see cube2
         // group.add(blockerCube);
-        scene.add(group);
+        
 
         // adding name attributes
         cube.name = 'cube';
@@ -179,64 +202,11 @@ class BoxCustomLayer {
         blockerCube.name = 'blocker';
 
         const height = 10;
-        // const polygon = [
-        //     -118.14836874604225,
-        //     34.066348626305114,
-        //     height,
-        //     -118.14836338162422,
-        //     34.06633751673586,
-        //     height,
-        //     -118.1483781337738,
-        //     34.06633196195068,
-        //     height,
-        //     -118.14836204051971,
-        //     34.06629752227448,
-        //     height,
-        //     -118.14834997057915,
-        //     34.06630196610445,
-        //     height,
-        //     -118.14833387732506,
-        //     34.06626641545813,
-        //     height,
-        //     -118.14846128225327,
-        //     34.06622419904626,
-        //     height,
-        //     -118.14847335219383,
-        //     34.066249751087554,
-        //     height,
-        //     -118.14849078655243,
-        //     34.06624308533837,
-        //     height,
-        //     -118.14853236079216,
-        //     34.066330850993594,
-        //     height,
-        //     -118.14847871661186,
-        //     34.066348626305114,
-        //     height,
-        //     -118.14836874604225,
-        //     34.066348626305114,
-        //     height
-        // ];
+        
 
-        const polygon = [
-            { lon: -118.14836874604225, lat: 34.066348626305114 },
-            { lon: -118.14836338162422, lat: 34.06633751673586 },
-            { lon: -118.1483781337738, lat: 34.06633196195068 },
-            { lon: -118.14836204051971, lat: 34.06629752227448 },
-            { lon: -118.14834997057915, lat: 34.06630196610445 },
-            { lon: -118.14833387732506, lat: 34.06626641545813 },
-            { lon: -118.14846128225327, lat: 34.06622419904626 },
-            { lon: -118.14847335219383, lat: 34.066249751087554 },
-            { lon: -118.14849078655243, lat: 34.06624308533837 },
-            { lon: -118.14853236079216, lat: 34.066330850993594 },
-            { lon: -118.14847871661186, lat: 34.066348626305114 },
-            { lon: -118.14836874604225, lat: 34.066348626305114 }
-        ];
+        
 
-        const cartesianVertices = polygon.map(({lon, lat}) => {
-            const {x, y, z} = convertLonLat(lon, lat);
-            return [x,y,z];
-        });
+        
 
         
 
@@ -270,10 +240,10 @@ class BoxCustomLayer {
 
 
         //coordinates of buildings
-        const coordx=845;
+        const coordx=846;
 
-        const coordy= 628;
-        const coordz= 0;
+        const coordy= 628.5;
+        const coordz= -5.11;
         const shape = new THREE.Shape();
 
         
@@ -302,7 +272,7 @@ class BoxCustomLayer {
         
         
         const extrudeSettings = { 
-            depth: 2, 
+            depth: 5.1, 
             bevelEnabled: false, 
             bevelSegments: 2, 
             steps: 2, 
@@ -323,135 +293,75 @@ class BoxCustomLayer {
 
 
 
+        function makerShape(arrayz,height){
+            const a=118.14;
+            const b=34.06;
+            const mill=100000;
 
-        const shape2 = new THREE.Shape();
+            const c= 1;
 
+            const d= 2;
+            const e=-2;
+
+
+            //coordinates of buildings
+            const coordx=845;
+
+            const coordy= 628;
+            const coordz= -5.11;
+            const extrudeSettings = { 
+                depth: height, 
+                bevelEnabled: false, 
+                bevelSegments: 2, 
+                steps: 2, 
+                bevelSize: 1, 
+                bevelThickness: 1 
+            };
+
+
+
+            const shape2 = new THREE.Shape();
+
+            shape2.moveTo( mill*(a+arrayz[0][0]),mill*( b- arrayz[0][1]));
+
+            for(let i=0;i<arrayz.length;i++){
+                shape2.lineTo(mill*(a+(arrayz[i][0])),mill*( b- arrayz[i][1]));
+                
+            }
+            
+
+            const geome2 = new THREE.ExtrudeGeometry( shape2, extrudeSettings );
         
-        
-        shape2.moveTo( mill*(a-118.14849346876144),mill*( b- 34.06647749720203));
-        shape2.lineTo(mill*(a-118.14849346876144),mill*( b- 34.06647749720203));
+            var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
 
-        shape2.lineTo(mill*(a-118.1484854221344),mill*( b-34.0664619438283));
-        shape2.lineTo(mill*(a-118.1484505534172),mill*( b- 34.066473053381245));
-        shape2.lineTo(mill*(a-118.14843580126762),mill*( b-34.06644416854057));
-        shape2.lineTo(mill*(a-118.14838483929634),mill*( b-34.066460832872934));
-        shape2.lineTo(mill*(a-118.14838081598282),mill*( b-34.0664530561849));
-        shape2.lineTo(mill*(a-118.14834460616112),mill*( b-34.066465276694345));
-        shape2.lineTo(mill*(a-118.14832583069801),mill*( b-34.06642528229327));
-        shape2.lineTo(mill*(a-118.14836204051971),mill*( b-34.066413061778064));
-        shape2.lineTo(mill*(a-118.14835801720619),mill*( b-34.066404174129545));
-        shape2.lineTo(mill*(a-118.1485404074192),mill*( b-34.06634418247759));
-        shape2.lineTo(mill*(a-118.14856722950935),mill*( b-34.0664008412611));
-        shape2.lineTo(mill*(a-118.14854308962822),mill*( b-34.066408617953925));
-
-
-        shape2.lineTo(mill*(a-118.14856454730034),mill*( b-34.06645416714038));
-        shape2.lineTo(mill*(a-118.14849346876144),mill*( b-34.06647749720203));
-        shape2.lineTo(mill*(a-118.14849346876144),mill*( b- 34.06647749720203));
-        
-        
-        
-        const geome2 = new THREE.ExtrudeGeometry( shape2, extrudeSettings );
-        
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome2.translate(coordx,coordy, coordz);
-        const mash2 = new THREE.Mesh( geome2, mater);
-        //mash2.rotation.z = Math.PI / d;
-        mash2.rotation.y = Math.PI / c;
-        mash2.rotation.x = Math.PI / e;
-        scene.add(mash2);
-
-        
-
-        
-        
-        const shape3 = new THREE.Shape();
-
-        shape3.moveTo( mill*(a-118.14826413989067),mill*( b-34.06642417133742));
-
-
-        shape3.lineTo(mill*(a-118.14826413989067),mill*( b- 34.06642417133742));
-        shape3.lineTo(mill*(a-118.14823731780052),mill*( b-34.0663675125695));
-        shape3.lineTo(mill*(a-118.14831241965294),mill*( b- 34.06634196056372));
-        shape3.lineTo(mill*(a-118.1483405828476),mill*( b-34.06639861934873));
-  
-        shape3.lineTo(mill*(a-118.14826413989067),mill*( b-34.06642417133742));
-        
-
-        const geome3 = new THREE.ExtrudeGeometry( shape3, extrudeSettings );
-        
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome3.translate(coordx,coordy, coordz);
-        const mash3 = new THREE.Mesh( geome3, mater);
-        //mash3.rotation.z = Math.PI / d;
-        mash3.rotation.y = Math.PI / c;
-        mash3.rotation.x = Math.PI / e;
-        scene.add(mash3);
-       
-
-
-        const shape4 = new THREE.Shape();
-
-        shape4.moveTo( mill*(a-118.1481796503067),mill*( b-34.0664519452294));
-        shape4.lineTo(mill*(a-118.1481796503067),mill*( b- 34.0664519452294));
-        
-        
-        shape4.lineTo(mill*(a-118.14810454845428),mill*( b-34.066450834273894));
-        shape4.lineTo(mill*(a-118.14810454845428),mill*( b-34.06639639743631));
-        shape4.lineTo(mill*(a-118.1481796503067),mill*( b-34.06639639743631));
-  
-        shape4.lineTo(mill*(a-118.1481796503067),mill*( b-34.0664519452294));
-        
-
-        const geome4 = new THREE.ExtrudeGeometry( shape4, extrudeSettings );
-        
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome4.translate(coordx,coordy, coordz);
-        const mash4 = new THREE.Mesh( geome4, mater);
-        //mash3.rotation.z = Math.PI / d;
-        mash4.rotation.y = Math.PI / c;
-        mash4.rotation.x = Math.PI / e;
-        scene.add(mash4);
-
-
-        const shape5 = new THREE.Shape();
-
-        shape5.moveTo( mill*(a-118.1479261815548),mill*( b-34.06643750280672));
-
-
-        shape5.lineTo(mill*(a-118.1479261815548),mill*( b-34.06643750280672));
-
-        shape5.lineTo(mill*(a-118.1479261815548),mill*( b-34.066380844047714));
-        shape5.lineTo(mill*(a-118.1479087471962),mill*( b-34.066380844047714 ));
-        shape5.lineTo(mill*(a-118.1479087471962),mill*( b- 34.06632751812228));
-        shape5.lineTo(mill*(a-118.14803883433342),mill*( b-34.06632751812228 ));
-        shape5.lineTo(mill*(a-118.14803883433342),mill*( b- 34.066376400221884));
-        shape5.lineTo(mill*(a-118.14802139997482),mill*( b- 34.066376400221884));
-        shape5.lineTo(mill*(a-118.14802139997482),mill*( b- 34.06639306456755));
-        shape5.lineTo(mill*(a-118.14802944660187),mill*( b- 34.06639306456755));
-        shape5.lineTo(mill*(a-118.14802944660187),mill*( b- 34.066418616557925));
-        shape5.lineTo(mill*(a-118.14802274107933),mill*( b-  34.066418616557925));
-        shape5.lineTo(mill*(a-118.14802274107933),mill*( b- 34.06643750280672));
-        shape5.lineTo(mill*(a-118.1479261815548),mill*( b- 34.06643750280672));
+            geome2.translate(coordx,coordy, coordz);
+            const mash2 = new THREE.Mesh( geome2, mater);
+            //mash2.rotation.z = Math.PI / d;
+            mash2.rotation.y = Math.PI / c;
+            mash2.rotation.x = Math.PI / e;
+            mash2.name = 'building';
+            group.add(mash2);
+            
+        }
+     
+        //console.log(obj);
+        for(let j=0;j<obj.length;j++){
+            
+            makerShape(obj[j].geometry.coordinates[0],obj[j].properties.height);
+        }
         
         
 
-        const geome5 = new THREE.ExtrudeGeometry( shape5, extrudeSettings );
+
         
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome5.translate(coordx,coordy, coordz);
-        const mash5 = new THREE.Mesh( geome5, mater);
-        //mash3.rotation.z = Math.PI / d;
-        mash5.rotation.y = Math.PI / c;
-        mash5.rotation.x = Math.PI / e;
-        scene.add(mash5);
-
-
-
+        const extrudeSettings2 = { 
+            depth: 6.6, 
+            bevelEnabled: false, 
+            bevelSegments: 2, 
+            steps: 2, 
+            bevelSize: 1, 
+            bevelThickness: 1 
+        };
 
         const shape6 = new THREE.Shape();
 
@@ -481,7 +391,7 @@ class BoxCustomLayer {
         
         
 
-        const geome6 = new THREE.ExtrudeGeometry( shape6, extrudeSettings );
+        const geome6 = new THREE.ExtrudeGeometry( shape6, extrudeSettings2 );
         
         var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
 
@@ -493,19 +403,7 @@ class BoxCustomLayer {
         scene.add(mash6);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        scene.add(group);
 
 
         const raycaster = new THREE.Raycaster();
@@ -514,6 +412,7 @@ class BoxCustomLayer {
         let intersections = raycaster.intersectObjects(scene.children, true);
         // A raycaster goes through all objects so there is no way to block line of sight
         // Therefore we added a name attribute to cube2's object and check if the first intersection is the cube2's name
+        console.log(intersections);
         if (intersections[0].object.name === 'cube2') {
             console.log('entered');
             console.log(intersections[0].object);
@@ -575,6 +474,13 @@ class BoxCustomLayer {
         }
     }
 }
+
+
+
+
+
+
+
 
 let boxLayer = new BoxCustomLayer('box');
 
@@ -682,6 +588,7 @@ map.on('style.load', () => {
     map.on('click', 'building', function (e) {
         console.log("Building Properties:", e.features[0].properties);
         console.log('Building Geometry:', e.features[0].geometry);
+        console.log("ID:", e.features[0].id);
         if (e.features.length > 0) {
             const feature = e.features[0];
             addBuildingToThreeJS(feature);
@@ -689,6 +596,8 @@ map.on('style.load', () => {
             //console.log('clicked');
         }
     });
+    
+    
 
     map.on('click', (e) => {
         if (ruler) {
