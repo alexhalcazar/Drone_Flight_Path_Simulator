@@ -23,7 +23,7 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
 
 const distanceContainer = document.getElementById('distance');
 
-//GeoJSON object to hold our measurement features
+// GeoJSON object to hold our measurement features
 const geojson = {
     type: 'FeatureCollection',
     features: []
@@ -495,11 +495,6 @@ async function getElevation() {
     eleDisplay.textContent = `${highestElevation} meters`;
   }
 
-// custom function
-function moveDrone(point) {
-    drone.setCoords(linestring.geometry.coordinates[point]);
-}
-
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
     let outputDiv = document.getElementById('output');
@@ -513,18 +508,9 @@ document.querySelector('#btn-ruler-off').addEventListener('click', () => {
 });
 
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
-    // move drone object
-    const dronePath = {
-        geometry: {
-          type: "LineString",
-          coordinates: [
-            [-118.14848769, 34.06582944],
-            [-118.14513433, 34.06006182]
-          ]
-        }
-    };
+    // Data for the path that the drone will follow as well as the duration of the animation
     const options = {
-        path: dronePath.geometry.coordinates,
+        path: linestring.geometry.coordinates,
         duration: 10000
     }
 
@@ -535,14 +521,6 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
             tb.remove(line);
         }
     );
-
-    //------ Old Method: keeping here in case needed for reference -------//
-    // numOfPoints = linestring.geometry.coordinates.length;
-    // for (let i = 0; i < numOfPoints; i++) {
-    //     setTimeout(() => {
-    //         moveDrone(i);
-    //     }, 2000 * i);
-    // }
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
@@ -627,6 +605,8 @@ spinGlobe();
 
 // Smooth animation for a line going across the map
 
+
+//Data to create the yellow line and add it to map
 const currentDate = new Date();
 const currentTime = currentDate.getTime();
 map.on("style.load", () => {
@@ -663,44 +643,10 @@ map.on("style.load", () => {
       "line-opacity": 0.7
     }
   });
-
-//-------- Moved into click funtion -----------//
-
-//   let startTime;
-//   const duration = 10000;
-
-//   const frame = (time) => {
-//     if (!startTime) startTime = time;
-//     const animationPhase = (time - startTime) / duration;
-    
-
-//     // Reduce the visible length of the line by using a line-gradient to cutoff the line
-//     // animationPhase is a value between 0 and 1 that reprents the progress of the animation
-//     map.setPaintProperty("animated-line-line", "line-gradient", [
-//       "step",
-//       ["line-progress"],
-//       "yellow",
-//       animationPhase,
-//       "rgba(0, 0, 0, 0)"
-//     ]);
-
-//     if (animationPhase > 1) {
-//       return;
-//     }
-//     window.requestAnimationFrame(frame);
-//   };
-  
-//   window.requestAnimationFrame(frame);
-
-//   // repeat
-//   setInterval(() => {
-//     startTime = undefined;
-//     window.requestAnimationFrame(frame);
-//   }, duration + 1500);
 });
 
 
-//--------- Plays the animation when the button "Play" is clicked ---------//
+//--------- Plays the animation of yellow line when the button "Play" is clicked ---------//
 let running = false;
 document.querySelector('#btn-animate').addEventListener('click', () => {
     let animateButton = document.querySelector('#btn-animate');
@@ -743,54 +689,5 @@ document.querySelector('#btn-animate').addEventListener('click', () => {
     duration + 1500);
     }
  
-    //-------------- TEST 2 ------------------//
-    map.on('click', function(e){
-        const pt = [e.lngLat.lng, e.lngLat.lat];
-        travelPath(pt);
-    })
 
-    function travelPath(destination){
-
-        // request directions. See https://docs.mapbox.com/api/navigation/#directions for details
-
-        var url = "https://api.mapbox.com/directions/v5/mapbox/driving/"+[origin, destination].join(';')+"?geometries=geojson&access_token=" + config.accessToken
-
-
-        fetchFunction(url, function(data){
-
-            // extract path geometry from callback geojson, and set duration of travel
-            const options = {
-                path: data.routes[0].geometry.coordinates,
-                duration: 10000
-            }
-
-            // start the truck animation with above options, and remove the line when animation ends
-            drone.followPath(
-                geojson,
-                function() {
-                    tb.remove(line);
-                }
-            );
-
-            // set up geometry for a line to be added to map, lofting it up a bit for *style*
-            var lineGeometry = options.path
-                .map(function(coordinate){
-                    return coordinate.concat([15])
-                })
-
-            // create and add line object
-            line = tb.line({
-                geometry: lineGeometry,
-                width: 5,
-                color: 'steelblue'
-            })
-
-            tb.add(line);
-
-            // set destination as the new origin, for the next trip
-            origin = destination;
-
-        })
-    }
-  
 });
