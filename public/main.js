@@ -61,15 +61,68 @@ function addBuildingToThreeJS(feature) {
     const properties = feature.properties;
     const height = properties.height || 5; // Default height if not specified
 
-    console.log(coordinates);
-    console.log(properties);
-    console.log(height);
+    //console.log(coordinates);
+    //console.log(properties);
+    //console.log(height);
 
     // Create Three.js mesh with this data
     // need to write function to createBuildingMesh.
-    // const mesh = createBuildingMesh(coordinates, height);
+    const mesh = createBuildingMesh(coordinates, height);
+    // console.log(mesh);
     // scene.add(mesh);
 }
+// Will come back to this
+function createBuildingMesh(coordinates, height) {
+    const vertices = [];
+    coordinates.forEach((coordinate) => {
+        vertices.push(coordinate[0], coordinate[1], height);
+    });
+    //console.log('vertices', vertices);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(vertices, 3)
+    );
+    const material = new THREE.MeshBasicMaterial({ color: 0x9900cc });
+    const mesh = new THREE.Mesh(geometry, material);
+    return mesh;
+}
+
+function convertLonLat(lon, lat) {
+    const radius = 6371; // Earth's radius in kilometers
+    //const x = lon * (radius * Math.cos(lat));
+    //const y = lat * radius;
+
+    const x = radius * Math.cos(lat) * Math.cos(lon)
+
+    const y = radius * Math.cos(lat) * Math.sin(lon)
+
+    const z = radius * Math.sin(lat)
+
+    return {x, y, z};
+}
+
+
+
+//Range
+var arr = [];
+
+map.on('load', 'building', function (e) {
+    for(let i=0;i<e.features.length;i++){
+        if(e.features[i].id>=470741000 && e.features[i].id<=470754000){
+            //console.log("feature",e.features[i].geometry.coordinates);
+            //const coord = e.features[i].geometry;
+            const coord = e.features[i];
+            arr.push(coord);
+
+        }  
+    }
+    
+    localStorage.setItem('myStorage', JSON.stringify(arr));
+    var obj = JSON.parse(localStorage.getItem('myStorage'));
+    
+});
+var obj = JSON.parse(localStorage.getItem('myStorage'));
 
 class BoxCustomLayer {
     type = 'custom';
@@ -119,6 +172,8 @@ class BoxCustomLayer {
     }
 
     makeScene() {
+
+        
         const scene = new THREE.Scene();
         const skyColor = 0xb1e1ff; // light blue
         const groundColor = 0xb97a20; // brownish orange
@@ -135,15 +190,15 @@ class BoxCustomLayer {
 
         group.name = '$group';
 
-        const geometry = new THREE.BoxGeometry(10, 10, 10);
-        geometry.translate(-50, 10, 0);
+        const geometry = new THREE.BoxGeometry(5, 5, 5);
+        geometry.translate(-65, 0, 0);
         const material = new THREE.MeshPhongMaterial({
             color: 0xff0000
         });
         const cube = new THREE.Mesh(geometry, material);
 
-        const enemyCube = new THREE.BoxGeometry(10, 10, 10);
-        enemyCube.translate(15, 10, 0);
+        const enemyCube = new THREE.BoxGeometry(5, 5, 5);
+        enemyCube.translate(15, 0, 0);
         const material2 = new THREE.MeshPhongMaterial({
             color: 0x0000ff
         });
@@ -160,28 +215,101 @@ class BoxCustomLayer {
         group.add(cube2);
         // I comment and uncomment the following line to determine if cube can see cube2
         // group.add(blockerCube);
-        scene.add(group);
+        
 
         // adding name attributes
         cube.name = 'cube';
         cube2.name = 'cube2';
         blockerCube.name = 'blocker';
 
+        const height = 10;
+        
+
+        
+
+        
+
+        
+
+        
+
         const materialLine = new THREE.LineBasicMaterial({
             color: 0xff0000
         });
 
         const points = [];
-        points.push(new THREE.Vector3(-50, 10, 0));
-        points.push(new THREE.Vector3(0, 10, 0));
-        points.push(new THREE.Vector3(15, 10, 0));
+        points.push(new THREE.Vector3(-65, 0, 0));
+        points.push(new THREE.Vector3(0, 0, 0));
+        points.push(new THREE.Vector3(15, 0, 0));
 
         const geometryLine = new THREE.BufferGeometry().setFromPoints(points);
 
         const line = new THREE.Line(geometryLine, materialLine);
+        line.name='line';
         // I use a line to visibly see what the direction of the vector will be on the map
         // You must comment the following line out if you wish to determine if cube can see cube2
-        scene.add(line);
+        
+
+
+
+
+        function makerShape(arrayz,height){
+            const a=118.14;
+            const b=34.06;
+            const mill=100000;
+
+            const c= 1;
+
+            const d= 2;
+            const e=-2;
+
+
+            //coordinates of buildings
+            const coordx=845;
+
+            const coordy= 628;
+            const coordz= -5.11;
+            const extrudeSettings = { 
+                depth: height, 
+                bevelEnabled: false, 
+                bevelSegments: 2, 
+                steps: 2, 
+                bevelSize: 1, 
+                bevelThickness: 1 
+            };
+
+
+
+            const shape2 = new THREE.Shape();
+
+            shape2.moveTo( mill*(a+arrayz[0][0]),mill*( b- arrayz[0][1]));
+
+            for(let i=0;i<arrayz.length;i++){
+                shape2.lineTo(mill*(a+(arrayz[i][0])),mill*( b- arrayz[i][1]));
+                
+            }
+            
+
+            const geome2 = new THREE.ExtrudeGeometry( shape2, extrudeSettings );
+        
+            var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
+
+            geome2.translate(coordx,coordy, coordz);
+            const mash2 = new THREE.Mesh( geome2, mater);
+            //mash2.rotation.z = Math.PI / d;
+            mash2.rotation.y = Math.PI / c;
+            mash2.rotation.x = Math.PI / e;
+            mash2.name = 'building';
+            group.add(mash2);
+            
+        }
+        //call makershape function to generate the buildings
+        for(let j=0;j<obj.length;j++){
+            
+            makerShape(obj[j].geometry.coordinates[0],obj[j].properties.height);
+        }
+        scene.add(group);
+
 
         const raycaster = new THREE.Raycaster();
         // Using the actual position of the cubes did not work for some reason so I had to hard code the origin of both cubes
@@ -189,13 +317,17 @@ class BoxCustomLayer {
         let intersections = raycaster.intersectObjects(scene.children, true);
         // A raycaster goes through all objects so there is no way to block line of sight
         // Therefore we added a name attribute to cube2's object and check if the first intersection is the cube2's name
+        
         if (intersections[0].object.name === 'cube2') {
             console.log('entered');
             console.log(intersections[0].object);
-            // console.log(intersections[1].object);
+            
+            
         } else {
             console.log('not entered');
+            console.log(intersections[0].object);
         }
+        scene.add(line);
         return scene;
     }
 
@@ -247,6 +379,9 @@ class BoxCustomLayer {
         }
     }
 }
+
+
+
 
 let boxLayer = new BoxCustomLayer('box');
 
@@ -313,15 +448,15 @@ map.on('style.load', () => {
         },
         labelLayerId
     );
-    
+
     map.on('click', (event) => {
         // When the map is clicked, set the lng and lat constants
         // equal to the lng and lat properties in the returned lngLat object.
         lng = event.lngLat.lng;
         lat = event.lngLat.lat;
-        
+
         getElevation();
-      });
+    });
 
     // drone
     map.addLayer({
@@ -365,13 +500,17 @@ map.on('style.load', () => {
     // Access and log building data (example)
     map.on('click', 'building', function (e) {
         console.log("Building Properties:", e.features[0].properties);
-        console.log("Building Geometry:", e.features[0].geometry);
-        if (e.features.length > 0 ){
+        console.log('Building Geometry:', e.features[0].geometry);
+        console.log("ID:", e.features[0].id);
+        if (e.features.length > 0) {
             const feature = e.features[0];
             addBuildingToThreeJS(feature);
-            console.log(feature)
+            console.log(feature);
+            //console.log('clicked');
         }
     });
+    
+    
 
     map.on('load', () => {
         map.addSource('geojson', {
@@ -458,7 +597,7 @@ map.on('style.load', () => {
             map.getSource('geojson').setData(geojson);
         } else {
             let outputDiv = document.getElementById('output');
-                outputDiv.innerHTML = 'None';
+            outputDiv.innerHTML = 'None';
         }
     });
 });
@@ -512,9 +651,8 @@ async function addRadarLayerToMapbox(map) {
 async function getElevation() {
     // Construct the API request.
     const query = await fetch(
-      `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
-      { method: 'GET'
-    }
+        `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
+        { method: 'GET' }
     );
     if (query.status !== 200) return;
     const data = await query.json();
@@ -529,7 +667,7 @@ async function getElevation() {
     const highestElevation = Math.max(...elevations);
     // Display the largest elevation value.
     eleDisplay.textContent = `${highestElevation} meters`;
-  }
+}
 
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
@@ -651,6 +789,7 @@ document.getElementById('btn-spin').addEventListener('click', (e) => {
 });
 
 spinGlobe();
+
 
 //------------ TESTING CODE -----------------//
 
