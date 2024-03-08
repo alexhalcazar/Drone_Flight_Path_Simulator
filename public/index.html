@@ -20,6 +20,7 @@
         <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
         <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
         <link rel="stylesheet" href="css/styles.css" />
+        <script type="module" src="main.js"></script>
     </head>
     <body>
         <div id="container">
@@ -29,11 +30,12 @@
                 <button id="btn-move-drone">Move</button>
                 <button id="btn-reset-drone">Reset</button>
                 <button id="btn-spin">Pause rotation</button>
+                <button id="btn-animate" type="button">Play</button>
                 <div id="output"></div>
                 <div class="elevation-info">
-                    <div>Longitude: <span id='lng'></span></div>
-                    <div>Latitude: <span id='lat'></span></div>
-                    <div>Elevation: <span id='ele'></span></div>
+                    <div>Longitude: <span id="lng"></span></div>
+                    <div>Latitude: <span id="lat"></span></div>
+                    <div>Elevation: <span id="ele"></span></div>
                 </div>
             </div>
 
@@ -42,6 +44,5 @@
         
             <div id="distance" class="distance-container"></div>
         </div>
-        <script type="module" src="main.js"></script>
     </body>
 </html>
