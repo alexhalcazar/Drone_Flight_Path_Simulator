@@ -21,6 +21,7 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
+
 const distanceContainer = document.getElementById('distance');
 
 // GeoJSON object to hold our measurement features
@@ -365,7 +366,7 @@ map.on('style.load', () => {
     map.on('click', 'building', function (e) {
         console.log("Building Properties:", e.features[0].properties);
         console.log("Building Geometry:", e.features[0].geometry);
-        if (e.features.length >0 ){
+        if (e.features.length > 0 ){
             const feature = e.features[0];
             addBuildingToThreeJS(feature);
             console.log(feature)
@@ -469,9 +470,44 @@ map.on('click', (e) => {
     boxLayer.raycast(e.point, true);
 });
 
+map.on('load', function() {
+    addRadarLayerToMapbox(map);
+});
+
 const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');
 const eleDisplay = document.getElementById('ele');
+
+async function fetchLatestRadarTimestamp() {
+    const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const data = await response.json();
+    // The `radar.past` array contains past radar data timestamps. Get the most recent one.
+    const latestTimestamp = data.radar.past.pop().path;
+    return latestTimestamp;
+}
+
+async function addRadarLayerToMapbox(map) {
+    const latestTimestamp = await fetchLatestRadarTimestamp();
+    
+    // Replace `{timestamp}` in the URL with the latest timestamp
+    const radarTileUrl = `https://tilecache.rainviewer.com/v2/radar/${latestTimestamp}/256/{z}/{x}/{y}/2/1_1.png`;
+
+    map.addSource('radar', {
+        type: 'raster',
+        tiles: [radarTileUrl],
+        tileSize: 256,
+    });
+
+    map.addLayer({
+        id: 'radar-layer',
+        type: 'raster',
+        source: 'radar',
+        layout: { 'visibility': 'visible' },
+        paint: {
+            'raster-opacity': 0.6, // Adjust radar layer opacity as needed
+        },
+    });
+}
 
 async function getElevation() {
     // Construct the API request.
@@ -525,6 +561,22 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     drone.setCoords([-118.148512, 34.065868]);
+});
+
+document.getElementById('toggleRadar').addEventListener('click', function() {
+    const button = document.getElementById('toggleRadar');
+    const radarLayer = map.getLayer('radar-layer');
+    if (radarLayer) {
+        const visibility = map.getLayoutProperty('radar-layer', 'visibility');
+        
+        if (visibility === 'visible') {
+            map.setLayoutProperty('radar-layer', 'visibility', 'none');
+            button.textContent = "Show Radar Layer";
+        } else {
+            map.setLayoutProperty('radar-layer', 'visibility', 'visible');
+            button.textContent = "Hide Radar Layer";
+        }
+    }
 });
 
 // The following values can be changed to control rotation speed:
