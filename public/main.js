@@ -82,10 +82,8 @@ function convertLonLat(lon, lat) {
 var arr = [];
 
 map.on('load', 'building', function (e) {
-    console.log("loaded");
     for(let i=0;i<e.features.length;i++){
-        //470751200 and 470752300
-        if(e.features[i].id>=470751200 && e.features[i].id<=470752300){
+        if(e.features[i].id>=470741000 && e.features[i].id<=470754000){
             //console.log("feature",e.features[i].geometry.coordinates);
             //const coord = e.features[i].geometry;
             const coord = e.features[i];
@@ -99,9 +97,6 @@ map.on('load', 'building', function (e) {
     
 });
 var obj = JSON.parse(localStorage.getItem('myStorage'));
-//console.log(obj[0].properties.height);
-
-
 
 class BoxCustomLayer {
     type = 'custom';
@@ -229,67 +224,6 @@ class BoxCustomLayer {
         // You must comment the following line out if you wish to determine if cube can see cube2
         
 
-        const a=118.14;
-        const b=34.06;
-        const mill=100000;
-
-        const c= 1;
-
-        const d= 2;
-        const e=-2;
-
-
-        //coordinates of buildings
-        const coordx=846;
-
-        const coordy= 628.5;
-        const coordz= -5.11;
-        const shape = new THREE.Shape();
-
-        
-        
-        shape.moveTo( mill*(a-118.14836874604225),mill*( b- 34.066348626305114));
-        shape.lineTo(mill*(a-118.14836874604225),mill*( b- 34.066348626305114));
-
-        
-        shape.lineTo(mill*(a-118.14836338162422),mill*( b-34.06633751673586));
-        shape.lineTo(mill*(a-118.1483781337738),mill*( b-34.06633196195068));
-        shape.lineTo(mill*(a-118.14836204051971),mill*(b- 34.06629752227448));
-        shape.lineTo(mill*(a-118.14834997057915),mill*(b- 34.06630196610445));
-        shape.lineTo(mill*(a-118.14833387732506),mill*(b- 34.06626641545813));
-        shape.lineTo(mill*(a-118.14846128225327),mill*(b-34.06622419904626));
-        shape.lineTo(mill*(a-118.14847335219383),mill*(b-34.066249751087554));
-        shape.lineTo(mill*(a-118.14849078655243),mill*(b- 34.06624308533837));
-        shape.lineTo(mill*(a-118.14853236079216),mill*(b- 34.066330850993594));
-        shape.lineTo(mill*(a-118.14847871661186),mill*(b- 34.066348626305114));
-        shape.lineTo(mill*(a-118.14836874604225),mill*(b- 34.066348626305114));
-        
-
-
-
-        //shape.lineTo(mill*(a-118.14836874604225),mill*( b- 34.066348626305114));
-        
-        
-        
-        const extrudeSettings = { 
-            depth: 5.1, 
-            bevelEnabled: false, 
-            bevelSegments: 2, 
-            steps: 2, 
-            bevelSize: 1, 
-            bevelThickness: 1 
-        };
-        
-        const geome = new THREE.ExtrudeGeometry( shape, extrudeSettings );
-        
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome.translate(coordx,coordy, coordz);
-        const mash = new THREE.Mesh( geome, mater);
-        //mash.rotation.z = Math.PI / d;
-        mash.rotation.y = Math.PI / c;
-        mash.rotation.x = Math.PI / e;
-        scene.add(mash);
 
 
 
@@ -343,66 +277,11 @@ class BoxCustomLayer {
             group.add(mash2);
             
         }
-     
-        //console.log(obj);
+        //call makershape function to generate the buildings
         for(let j=0;j<obj.length;j++){
             
             makerShape(obj[j].geometry.coordinates[0],obj[j].properties.height);
         }
-        
-        
-
-
-        
-        const extrudeSettings2 = { 
-            depth: 6.6, 
-            bevelEnabled: false, 
-            bevelSegments: 2, 
-            steps: 2, 
-            bevelSize: 1, 
-            bevelThickness: 1 
-        };
-
-        const shape6 = new THREE.Shape();
-
-        shape6.moveTo( mill*(a-118.14800798892975),mill*( b-34.066313075678366));
-        shape6.lineTo(mill*(a-118.14800798892975),mill*( b- 34.066313075678366));
-        
-        
-        shape6.lineTo(mill*(a-118.14800798892975),mill*( b-34.066295300359414));
-        shape6.lineTo(mill*(a-118.14792349934578),mill*( b-34.06629641131694));
-        shape6.lineTo(mill*(a-118.14792349934578),mill*( b-34.06626308258427));
-        shape6.lineTo(mill*(a-118.14782962203026),mill*( b-34.066265304500206));
-        shape6.lineTo(mill*(a-118.14782828092575),mill*( b-34.06619198124412));
-        shape6.lineTo(mill*(a-118.14800798892975),mill*( b-34.06619198124412));
-        shape6.lineTo(mill*(a-118.14800798892975),mill*( b-34.06618975932628));
-        shape6.lineTo(mill*(a-118.14802542328835),mill*( b-34.06618975932628));
-        shape6.lineTo(mill*(a-118.14802542328835),mill*( b-34.06618309357239));
-        shape6.lineTo(mill*(a-118.14809113740921),mill*( b-34.06618309357239));
-        shape6.lineTo(mill*(a-118.14809113740921),mill*( b-34.066210867543404));
-        shape6.lineTo(mill*(a-118.14806699752808),mill*( b-34.066210867543404));
-        shape6.lineTo(mill*(a-118.14806699752808),mill*( b-34.06623864150531));
-        shape6.lineTo(mill*(a-118.14806029200554),mill*( b-34.06623864150531));
-        shape6.lineTo(mill*(a-118.14806029200554),mill*( b-34.06624864012939));
-        shape6.lineTo(mill*(a-118.14808309078217),mill*( b-34.06624864012939));
-        shape6.lineTo(mill*(a-118.1481085717678),mill*( b-34.066274192163306));
-        shape6.lineTo(mill*(a-118.1481085717678),mill*( b-34.06631196472105));
-        shape6.lineTo(mill*(a-118.14800798892975),mill*( b-34.066313075678366));
-        
-        
-
-        const geome6 = new THREE.ExtrudeGeometry( shape6, extrudeSettings2 );
-        
-        var mater = new THREE.MeshPhongMaterial ({ color: 0x00ff00});
-
-        geome6.translate(coordx,coordy, coordz);
-        const mash6 = new THREE.Mesh( geome6, mater);
-        //mash3.rotation.z = Math.PI / d;
-        mash6.rotation.y = Math.PI / c;
-        mash6.rotation.x = Math.PI / e;
-        scene.add(mash6);
-
-
         scene.add(group);
 
 
@@ -412,11 +291,11 @@ class BoxCustomLayer {
         let intersections = raycaster.intersectObjects(scene.children, true);
         // A raycaster goes through all objects so there is no way to block line of sight
         // Therefore we added a name attribute to cube2's object and check if the first intersection is the cube2's name
-        console.log(intersections);
+        
         if (intersections[0].object.name === 'cube2') {
             console.log('entered');
             console.log(intersections[0].object);
-            //console.log(intersections[1].object);
+            
             
         } else {
             console.log('not entered');
@@ -474,10 +353,6 @@ class BoxCustomLayer {
         }
     }
 }
-
-
-
-
 
 
 
