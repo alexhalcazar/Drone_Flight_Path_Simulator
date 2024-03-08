@@ -21,6 +21,31 @@ const tb = (window.tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
     defaultLights: true
 }));
 
+
+const distanceContainer = document.getElementById('distance');
+
+// GeoJSON object to hold our measurement features
+const geojson = {
+    type: 'FeatureCollection',
+    features: []
+};
+
+// Used to draw a line between points
+const linestring = {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: []
+    }
+};
+
+
+const navControl = new mapboxgl.NavigationControl({
+    showZoom: false
+});
+
+map.addControl(navControl, 'top-right');
+
 let ruler = false;
 let drone;
 let altitude = 0;
@@ -28,6 +53,7 @@ let droneX = -118.148512;
 let droneY = 34.065868;
 let lat;
 let lng;
+let numOfPoints;
 
 function addBuildingToThreeJS(feature) {
     // Extracting geometry and properties
@@ -382,7 +408,19 @@ map.on('style.load', () => {
             type: 'fill-extrusion',
             minzoom: 15,
             paint: {
-                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-color': [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "height"],
+                    7.5,
+                    "rgba(242, 243, 243, 0.21)",
+                    50,
+                    "#cad3d8",
+                    100,
+                    "#6c91ac",
+                    200,
+                    "#002952"
+                  ],
 
                 // Use an 'interpolate' expression to
                 // add a smooth transition effect to
@@ -474,6 +512,40 @@ map.on('style.load', () => {
     
     
 
+    map.on('load', () => {
+        map.addSource('geojson', {
+            'type': 'geojson',
+            'data': geojson
+        });
+
+        // Add styles to the map
+        map.addLayer({
+            id: 'measure-points',
+            type: 'circle',
+            source: 'geojson',
+            paint: {
+                'circle-radius': 5,
+                'circle-color': '#000'
+            },
+            filter: ['in', '$type', 'Point']
+        });
+        map.addLayer({
+            id: 'measure-lines',
+            type: 'line',
+            source: 'geojson',
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#000',
+                'line-width': 2.5
+            },
+            filter: ['in', '$type', 'LineString']
+        });
+    });
+
+
     map.on('click', (e) => {
         if (ruler) {
             const features = map.queryRenderedFeatures(e.point, {
@@ -537,9 +609,44 @@ map.on('click', (e) => {
     boxLayer.raycast(e.point, true);
 });
 
+map.on('load', function() {
+    addRadarLayerToMapbox(map);
+});
+
 const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');
 const eleDisplay = document.getElementById('ele');
+
+async function fetchLatestRadarTimestamp() {
+    const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const data = await response.json();
+    // The `radar.past` array contains past radar data timestamps. Get the most recent one.
+    const latestTimestamp = data.radar.past.pop().path;
+    return latestTimestamp;
+}
+
+async function addRadarLayerToMapbox(map) {
+    const latestTimestamp = await fetchLatestRadarTimestamp();
+    
+    // Replace `{timestamp}` in the URL with the latest timestamp
+    const radarTileUrl = `https://tilecache.rainviewer.com/v2/radar/${latestTimestamp}/256/{z}/{x}/{y}/2/1_1.png`;
+
+    map.addSource('radar', {
+        type: 'raster',
+        tiles: [radarTileUrl],
+        tileSize: 256,
+    });
+
+    map.addLayer({
+        id: 'radar-layer',
+        type: 'raster',
+        source: 'radar',
+        layout: { 'visibility': 'visible' },
+        paint: {
+            'raster-opacity': 0.6, // Adjust radar layer opacity as needed
+        },
+    });
+}
 
 async function getElevation() {
     // Construct the API request.
@@ -562,11 +669,6 @@ async function getElevation() {
     eleDisplay.textContent = `${highestElevation} meters`;
 }
 
-// custom function
-function moveDrone(point) {
-    drone.setCoords(linestring.geometry.coordinates[point]);
-}
-
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
     let outputDiv = document.getElementById('output');
@@ -580,17 +682,39 @@ document.querySelector('#btn-ruler-off').addEventListener('click', () => {
 });
 
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
-    // move drone object
-    numOfPoints = linestring.geometry.coordinates.length;
-    for (let i = 0; i < numOfPoints; i++) {
-        setTimeout(() => {
-            moveDrone(i);
-        }, 2000 * i);
+    // Data for the path that the drone will follow as well as the duration of the animation
+    const options = {
+        path: linestring.geometry.coordinates,
+        duration: 10000
     }
+
+    // start the drone animation with above options, and remove the line when animation ends
+    drone.followPath(
+        options,
+        function() {
+            tb.remove(line);
+        }
+    );
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     drone.setCoords([-118.148512, 34.065868]);
+});
+
+document.getElementById('toggleRadar').addEventListener('click', function() {
+    const button = document.getElementById('toggleRadar');
+    const radarLayer = map.getLayer('radar-layer');
+    if (radarLayer) {
+        const visibility = map.getLayoutProperty('radar-layer', 'visibility');
+        
+        if (visibility === 'visible') {
+            map.setLayoutProperty('radar-layer', 'visibility', 'none');
+            button.textContent = "Show Radar Layer";
+        } else {
+            map.setLayoutProperty('radar-layer', 'visibility', 'visible');
+            button.textContent = "Hide Radar Layer";
+        }
+    }
 });
 
 // The following values can be changed to control rotation speed:
@@ -665,3 +789,96 @@ document.getElementById('btn-spin').addEventListener('click', (e) => {
 });
 
 spinGlobe();
+
+
+//------------ TESTING CODE -----------------//
+
+
+// Smooth animation for a line going across the map
+
+
+//Data to create the yellow line and add it to map
+const currentDate = new Date();
+const currentTime = currentDate.getTime();
+map.on("style.load", () => {
+    const animatedLine = {
+    type: "Feature",
+    properties: {
+      stroke: "#555555",
+      "stroke-width": 2,
+      "stroke-opacity": 1
+    },
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [-118.14848769, 34.06582944],
+        [-118.14513433, 34.06006182]
+      ]
+    }
+};
+
+  map.addSource("animated-line", {
+    type: "geojson",
+    data: animatedLine,
+    // Line metrics is required to use the 'line-progress' property
+    lineMetrics: true
+  });
+
+  map.addLayer({
+    id: "animated-line-line",
+    type: "line",
+    source: "animated-line",
+    paint: {
+      "line-color": "rgba(0,0,0,0)",
+      "line-width": 8,
+      "line-opacity": 0.7
+    }
+  });
+});
+
+
+//--------- Plays the animation of yellow line when the button "Play" is clicked ---------//
+let running = false;
+document.querySelector('#btn-animate').addEventListener('click', () => {
+    let animateButton = document.querySelector('#btn-animate');
+    if (animateButton.textContent == "Play") { // check if text inside is "Play"
+        animateButton.textContent = "Pause";    // If so, change to "Pause"
+        running = true;
+    } else {
+        animateButton.textContent = "Play";
+        running = false;
+    }
+    console.log("clicked");
+
+    if (running == true) {
+        let startTime;
+    const duration = 10000;
+    const frame = (time) => {
+        if (!startTime) startTime = time;
+        const animationPhase = (time - startTime) / duration;
+        // Reduce the visible length of the line by using a line-gradient to cutoff the line
+        // animationPhase is a value between 0 and 1 that reprents the progress of the animation
+        map.setPaintProperty("animated-line-line", "line-gradient", [
+            "step",
+            ["line-progress"],
+            "yellow",
+            animationPhase,
+            "rgba(0, 0, 0, 0)"
+        ]);
+        if (animationPhase > 1) {
+            return;
+        }
+        window.requestAnimationFrame(frame);
+    };
+    window.requestAnimationFrame(frame);
+    
+    // repeat the animation
+    setInterval(() => {
+        startTime = undefined;
+        window.requestAnimationFrame(frame);
+    }, 
+    duration + 1500);
+    }
+ 
+
+});

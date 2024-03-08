@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "threebox-plugin": "^2.2.7"
   },
   "scripts": {
     "start": "node server.js"
@@ -9,7 +10,6 @@
   "description": "This project marks my first experience with Mapbox. I am developing a web application that will leverage the fundamental features of Mapbox. The aim is to gain familiarity with the platform and build a foundation for a more advanced project in the future.",
   "version": "1.0.0",
   "main": "server.js",
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alexhalcazar/MyFirstMap.git"
