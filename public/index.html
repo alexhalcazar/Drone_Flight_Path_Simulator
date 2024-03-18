@@ -21,28 +21,40 @@
         <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
         <link rel="stylesheet" href="css/styles.css" />
         <script type="module" src="main.js"></script>
+        <!--<script type="module" src="ui.js"></script>-->
     </head>
     <body>
         <div id="container">
             <div id="sidebar">
-                <button id="btn-ruler-on">Ruler On</button>
-                <button id="btn-ruler-off">Ruler Off</button>
-                <button id="btn-move-drone">Move</button>
-                <button id="btn-reset-drone">Reset</button>
-                <button id="toggleRadar">Toggle Radar Layer</button>
-                <button id="btn-spin">Pause rotation</button>
-                <button id="btn-animate" type="button">Play</button>
+                <!--Screen that displays maps output from the drone-->
                 <div id="output"></div>
                 <div class="elevation-info">
                     <div>Longitude: <span id="lng"></span></div>
                     <div>Latitude: <span id="lat"></span></div>
                     <div>Elevation: <span id="ele"></span></div>
+                    <div>Distance:</div>
+                        <div id="distance" class="distance-container"></div>
                 </div>
+                <div class="ui-grid-b">
+                    <div class="ui-block-a"><button id="btn-ruler-on">Ruler On</button></div>
+                    <div class="ui-block-b"><button id="btn-ruler-off">Ruler Off</button></div>
+                    <div class="ui-block-c"><button id="btn-move-drone">Move</button></div>
+                    <div class="ui-block-a"><button id="btn-reset-drone">Reset</button></div>
+                    <div class="ui-block-b"><button id="btn-spin">Pause rotation</button></div>
+                </div>
+                <!--<button id="btn-collapse">C</button>-->
+                
+                
+                
+                
+                <!--<button id="toggleRadar">Toggle Radar Layer</button>-->
+                
+                <!--<button id="btn-animate" type="button">Play</button>-->
+                <!--<div id="output"></div>-->
             </div>
+            <!--Screen that displays the map-->
             <div id="map"></div>
-            <div id="info"></div>
-        
-            <div id="distance" class="distance-container"></div>
+           <!-- <div id="info"></div>-->
         </div>
     </body>
 </html>

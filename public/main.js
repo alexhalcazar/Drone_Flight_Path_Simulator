@@ -590,7 +590,7 @@ map.on('style.load', () => {
                 // Populate the distanceContainer with total distance
                 const value = document.createElement('pre');
                 const distance = turf.length(linestring);
-                value.textContent = `Total distance: ${distance.toLocaleString()}km`;
+                value.textContent = `${distance.toLocaleString()}km`;
                 distanceContainer.appendChild(value);
             }
 
