@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.109.0/build/three.module.js';
-
+//test
 mapboxgl.accessToken =
     'pk.eyJ1IjoibG92ZWRvY3RvcjM2OSIsImEiOiJjbHI1eDBhamkwM2NpMnFvczd2ODIyN2QzIn0.IJsSWOjDJyqyv2McyXizag';
 // instantiates a new map
