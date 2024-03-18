@@ -21,6 +21,16 @@ html, body {
     overflow-y: auto; 
 }
 
+/*
+.sidebar_small {
+    width: 10%;
+}
+
+.main_content_small{
+    width: 90%;
+}
+*/
+
 button {
     font: bold 14px 'Roboto', sans-serif;
     background-color: #3386c0;
@@ -31,11 +41,23 @@ button {
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s; 
+    transition: background-color 0.3s;
+    /* word-wrap: normal;  */
 }
 
 button:hover {
     background-color: #4ea0da;
+}
+
+/* .button-wrap{
+    margin-left: 5px;
+    margin-right: 5px;
+} */
+
+.ui-grid-b{
+    display: grid;
+	grid-template-rows: 100px 100px;
+	grid-template-columns: 100px 100px 100px;
 }
 
 #output, .elevation-info {
@@ -49,12 +71,12 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
 }
 
-.distance-container, .elevation-info {
+/* .distance-container, .elevation-info {
     background-color: rgba(255, 255, 255, 0.9);
     border: 1px solid #ccc;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+} */
 
 #map {
     height: 100%;
