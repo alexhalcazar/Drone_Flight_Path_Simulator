@@ -46,12 +46,13 @@ export function initializeThreeJS(map) {
     );
     // expose the Threebox instance to the window so it can be accessed by the 3D objects
     window.tb = tb;
-    //  query building features and add to the map
+    // query building features and add to the map
     queryBuildingFeatures(map, tb);
+    // add drone to map
     addDrone(map, tb);
     pointsLayer(map);
     map.on('click', (e) => {
-        handleMapClick(e);
+        handleMapClick(e, map, tb);
     })
 }
 

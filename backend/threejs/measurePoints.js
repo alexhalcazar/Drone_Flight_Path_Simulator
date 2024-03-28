@@ -1,3 +1,9 @@
+import {ruler} from "../../frontend/src/eventHandlers.js"
+
+export const droneCoordPath = [];
+
+const distanceContainer = document.getElementById('distance');
+
 // GeoJSON object to hold our measurement features
 const geojson = {
     type: 'FeatureCollection',
@@ -38,3 +44,153 @@ export const pointsLayer = (map) => {
         });
     });
 }
+
+// Used to draw a line between points
+const linestring = {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: []
+    }
+};
+
+let popup;
+let startPoint;
+
+// Adds points to the map for the drone route when a user clicks 
+export const measurePoints = (e, map, tb, lng, lat) => {
+    if (ruler) {
+        const features = map.queryRenderedFeatures(e.point, {
+            layers: ['measure-points']
+        });
+
+        // Remove the linestring from the group
+        // so we can redraw it based on the points collection.
+        if (geojson.features.length > 1) geojson.features.pop();
+
+        // Clear the distance container to populate it with a new value.
+        distanceContainer.innerHTML = '';
+
+        // If a feature was clicked, remove it from the map.
+        if (features.length) {
+            const id = features[0].properties.id;
+            geojson.features = geojson.features.filter(
+                (point) => point.properties.id !== id
+            );
+        } else {
+            const point = {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                },
+                properties: {
+                    id: String(new Date().getTime())
+                }
+            };
+
+            geojson.features.push(point);
+
+            // Array storing each points coordinates
+            droneCoordPath.push(point.geometry.coordinates);
+
+            // Starting point for the popups 
+            startPoint = [point.geometry.coordinates[0],point.geometry.coordinates[1]];
+        }
+
+        if (geojson.features.length > 1) {
+            linestring.geometry.coordinates = geojson.features.map(
+                (point) => point.geometry.coordinates
+            );
+
+            geojson.features.push(linestring);
+
+            // Populate the distanceContainer with total distance
+            const value = document.createElement('pre');
+            const distance = turf.length(linestring);
+            value.textContent = `Total distance: ${distance.toLocaleString()}km`;
+            distanceContainer.appendChild(value);
+        }
+
+        map.getSource('geojson').setData(geojson);
+
+        // Provides the coordinates of each point for the popup to input altitude
+        // If there is only one point so far, startPoint is given
+        // Otherwise the last element stored in linestring is given
+        function popupAltitude (point) {
+            if (linestring.geometry.coordinates.length < 1) {
+                return startPoint;
+            }
+            else {
+                return linestring.geometry.coordinates[linestring.geometry.coordinates.length-1];
+            }
+        }
+
+        // Popup on each point that prompts user to each point altitude
+        popup = new mapboxgl.Popup({ offset: 0 })
+                .setLngLat(popupAltitude(linestring.geometry.coordinates))
+                .setHTML(`
+                <h2>Enter point's altitude</h2>
+                <input id="altitude" style="width:100px" placeholder="meters"> 
+                <button id="btn-altitude" style="width:70px">Enter</button>
+                `)
+                .addTo(map);
+
+        // Gets user input from the popup for altitude and stores it in an array
+        let userAltitude;
+        document.querySelector("#btn-altitude").addEventListener("click", () => {
+            userAltitude = document.querySelector("#altitude").value;
+            addAltitude(userAltitude);
+        });
+        
+        // Adds altitude values to each point's coordinates and draws elevated line
+        // Also draws line connecting ground and air paths at each point
+        function addAltitude (input) {
+            droneCoordPath[droneCoordPath.length-1].push(input);
+
+            // Line is made with altitude 
+            let line;
+            line = tb.line({
+                geometry: droneCoordPath,
+                width: 5,
+                color: 'gold'
+            })
+            tb.add(line);
+
+            // Removes altitude from the array so we have the ground path coordinates
+            const slicedArray = droneCoordPath => droneCoordPath.slice(0,2),
+            groundPath = droneCoordPath.map(slicedArray);
+            let lineGeo;
+            let line2;
+
+            // lineGeo stores the coord of each matching ground/air point
+            // Then a line is connected from the ground to the air paths at each point
+            for (let i = 0; i < groundPath.length; i++) {
+                lineGeo = [[groundPath[i]], [droneCoordPath[i]]];
+                line2 = tb.line({
+                    geometry: [lineGeo[0][0], lineGeo[1][0]],
+                    width: 5,
+                    color: 'steelblue'
+                })
+                tb.add(line2);
+            }
+         
+        }
+
+        // If a point is removed, remove the popup as well
+        if (features.length) {
+            const id = popup;
+            geojson.features = geojson.features.filter(
+                (point) => point.properties.id !== id
+            );
+        }
+
+    } else {
+        let outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = 'None';
+    }
+
+    
+};
+
+

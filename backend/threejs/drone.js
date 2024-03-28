@@ -1,3 +1,5 @@
+export let drone;
+
 export function addDrone(map, tb) {
     map.on('load', function() {
         map.addLayer({
@@ -20,7 +22,7 @@ export function addDrone(map, tb) {
                     model.setCoords([-118.148512, 34.065868, 0]);
                     model.setRotation({ x: 0, y: 0, z: 250 });
                     tb.add(model);
-                    // passModel(model);
+                    drone = model;
                 });
             },
             render: function(gl, matrix) {

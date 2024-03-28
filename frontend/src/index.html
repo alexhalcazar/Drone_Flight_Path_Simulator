@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../styles/main.css">
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <script src="https://unpkg.com/threebox-plugin/dist/threebox.min.js" type="text/javascript"></script>
     <link href="https://unpkg.com/threebox-plugin/dist/threebox.css" rel="stylesheet" />>
     <script type="module" src="../backend/src/main.js"></script>
@@ -54,7 +55,7 @@
             document.getElementById("main").style.marginLeft = "0px";
         }
     </script>
-    <script src="./eventHandlers.js"></script>
+    <script type="module" src="./eventHandlers.js"></script>
     <script type="module" src="./mapClickHandlers.js"></script>
 </body>
 </html>
