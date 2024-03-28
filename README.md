@@ -40,23 +40,7 @@ You can use this server to explore and interact with the web application.
 
 ## Features
 
-The web application starts with a top down view of Alhambra, CA. <br>
-Move the mouse and hold down the 'left click' to move around the map. <br>
-Move the mouse and hold down the 'right click' to control the camera pitch. <br>
-Use the mouse scroll to zoom in and out of the map. <br>
-
-The left side bar contains the following buttons:
-
-**Center on Church** - Centers the camera over Saint Thomas More Catholic School <br>
-**Center on Run-Route** - Centers the camera over a custom run-route that wraps around Granada Park <br>
-**Center on School** - Centers the camera over Fremont Elementary School <br>
-**Ruler On** - When this button is clicked the display box inside the side bar will indicate 'Ruler On' and <br>
-any left clicks on the map will start to generate points. Each succesive point will add a distance equal generating a total distance. <br>
-Clicking on a point will delete that point. <br>
-**Ruler Off** - Will disable the ruler which is indicated in the display box by 'Ruler Off' allowing you to resume regular controls. <br>
-**Move** - Clicking this button while there are at least 2 or more points will move the 3D model drone located on Fremont Ave between <br>
-San Clemente Ave and Las Flores St will begin to move the drone to the points in the order the points were placed. <br>
-**Reset** - Will reset the drone to its original starting space. <br>
+<!--TODO-->
 
 ## Reporting Issues
 
@@ -64,7 +48,7 @@ If you encounter any issues or have suggestions for improvement, please [create 
 
 ## 3D Drone License
 
-The 3D drone model's licensing can be viewed under '/drone/license.txt'
+The 3D drone model's licensing can be viewed under '/frontend/license.txt'
 
 ## Authors
 
