@@ -1,0 +1,150 @@
+/* main.css */
+body { margin:0; padding:0; }
+        #map { 
+        position: absolute; 
+        top: 0; right: 0; 
+        bottom: 0; left: 0;
+        width:100%;
+        height:100%; 
+        }
+   
+html, body, #map{
+    height:100%;
+    margin: 0px;
+	background-color: #000;
+}
+
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    overflow-x: hidden;
+    transition: 0.5s;
+    margin-top: 10px;
+    margin-left: 10px;
+    background-color: #000;
+}
+
+button {
+    font: bold 14px 'Roboto', sans-serif;
+    background-color: #3386c0;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    word-wrap: normal; 
+}
+
+.ui-block-a {
+	margin: 5px;
+}
+
+.ui-grid-b {
+    display: grid;
+	grid-template-rows: 100px 100px;
+	grid-template-columns: 100px 100px 100px;
+}
+
+.openbtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #111;
+    color: white;
+    padding: 10px 15px;
+    border: none;    
+    position:absolute; 
+    top:10px; 
+    left:10px; 
+    z-index:1;
+    border-radius: 3px;
+}
+  
+.openbtn:hover {
+    background-color: #444;
+    transition: background-color 0.3s;
+}
+
+.closebtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #111;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    margin-right: 10px;
+    float: right;
+    border-color: #FFF;
+}
+  
+.closebtn:hover {
+    background-color: #444;
+    transition: background-color 0.3s;
+}
+
+.ui-block-a-btn {
+	width: 100%;
+	height: 80%;
+	background-color: #000;
+	border-color: #fff
+}
+
+.elevation-info {
+    background-color: #fff;
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    padding: 10px;
+    margin-top: 10px;
+	margin-bottom: 10px;
+	margin-right: 10px;
+    font-size: 16px;
+    color: #333; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+	font: bold 14px 'Roboto', sans-serif;
+}
+
+.distance-container  {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	font: bold 14px 'Roboto', sans-serif;
+} 
+
+#output {
+    background-color: #fff;
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    padding: 10px;
+    margin-top: 52px;
+	margin-bottom: 10px;
+	margin-right: 10px;
+    font-size: 16px;
+    color: #333; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+	font: bold 14px 'Roboto', sans-serif;
+}
+
+#main {
+  position:relative;
+  transition: margin-left .5s;
+  padding: 16px;
+  height:100%;
+
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidebar {padding-top: 15px;}
+  .sidebar a {font-size: 18px;}
+}   
+
+.mapboxgl-ctrl-icon{
+	padding: 0px;
+}

@@ -4,12 +4,25 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// Serve static files
-app.use(express.static(path.resolve(__dirname, 'public')));
-app.use('/data', express.static(path.resolve(__dirname, 'data'), { extensions: ['geojson'] }));
-app.use('/drone', express.static(path.resolve(__dirname, 'drone'), { extensions: ['gltf'] }));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Start the server
+app.use('/frontend', express.static(path.resolve(__dirname, 'frontend'), { extensions: ['gltf'] }));
+
+app.get('/backend/src/main.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'src', 'main.js'));
+});
+app.get('/backend/map/mapSetup.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'map', 'mapSetup.js'));
+});
+app.get('/backend/threejs/threejsSetup.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'threejs', 'threejsSetup.js'));
+});
+app.get('/backend/threejs/drone.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'threejs', 'drone.js'));
+});
+app.get('/backend/threejs/measurePoints.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'threejs', 'measurePoints.js'));
+});
 app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
 });
