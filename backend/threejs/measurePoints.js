@@ -106,10 +106,16 @@ export const measurePoints = (e, map, tb, lng, lat) => {
             geojson.features.push(linestring);
 
             // Populate the distanceContainer with total distance
-            const value = document.createElement('pre');
-            const distance = turf.length(linestring);
-            value.textContent = `Total distance: ${distance.toLocaleString()}km`;
-            distanceContainer.appendChild(value);
+            const value_km = document.createElement('pre');
+            const value_mi = document.createElement('pre');
+            
+            const distance_km = turf.length(linestring);
+            const distance_mi = distance_km * 0.62137;
+            
+            value_km.textContent = `Total distance: ${distance_km.toLocaleString()} km`;
+            value_mi.textContent = `                ${distance_km.toLocaleString()} mi`;
+            distanceContainer.appendChild(value_km);
+            distanceContainer.appendChild(value_mi);
         }
 
         map.getSource('geojson').setData(geojson);
