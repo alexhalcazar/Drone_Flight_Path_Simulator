@@ -113,7 +113,7 @@ export const measurePoints = (e, map, tb, lng, lat) => {
             const distance_mi = distance_km * 0.62137;
             
             value_km.textContent = `Total distance: ${distance_km.toLocaleString()} km`;
-            value_mi.textContent = `                ${distance_km.toLocaleString()} mi`;
+            value_mi.textContent = `                ${distance_mi.toLocaleString()} mi`;
             distanceContainer.appendChild(value_km);
             distanceContainer.appendChild(value_mi);
         }
