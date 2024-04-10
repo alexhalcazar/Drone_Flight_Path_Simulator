@@ -17,7 +17,7 @@ The project relies on the following npm packages:
 
 - [Express](https://www.npmjs.com/package/express/v/4.18.2)
 
-Ensure you are in the 'MyFirstMap' directory and run the following command:
+Ensure you are in the 'Drone_Flight_Path_Simulator' directory and run the following command:
 
 ```bash
 npm install
