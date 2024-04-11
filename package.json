@@ -23,6 +23,7 @@
     "@turf/turf": "^6.5.0",
     "express": "^4.19.2",
     "mapbox-gl": "^3.2.0",
+    "pg": "^8.11.5",
     "three": "^0.162.0",
     "threebox-plugin": "^2.2.7"
   },
