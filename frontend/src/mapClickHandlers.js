@@ -2,8 +2,8 @@ import { measurePoints } from "../../backend/threejs/measurePoints.js";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibXljc2FsIiwiYSI6ImNsc2RtM2tvdzEyNnIybXQwcjI5d2tqcjAifQ.SqGe3A-JLNSkTCYluSpRnA';
 
-let lng;
-let lat;
+export let lng;
+export let lat;
 
 const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');

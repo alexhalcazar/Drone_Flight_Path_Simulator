@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 
+
 const app = express();
 const port = 3000;
 
@@ -22,6 +23,12 @@ app.get('/backend/threejs/drone.js', (req, res) => {
 });
 app.get('/backend/threejs/measurePoints.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'backend', 'threejs', 'measurePoints.js'));
+});
+app.get('/backend/api/weather.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'api', 'weather.js'));
+});
+app.get('/server.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'server.js'));
 });
 app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
