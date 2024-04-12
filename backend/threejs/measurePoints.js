@@ -2,7 +2,11 @@ import {ruler} from "../../frontend/src/eventHandlers.js"
 
 export const droneCoordPath = [];
 
-const distanceContainer = document.getElementById('distance');
+// const distanceContainer = document.getElementById('distance');
+
+// Distance experiment
+const dtstnceDisplay = document.getElementById('dtstnce');
+const dtstnceDisplay_B = document.getElementById('dtstnce-b');
 
 // GeoJSON object to hold our measurement features
 const geojson = {
@@ -69,7 +73,7 @@ export const measurePoints = (e, map, tb, lng, lat) => {
         if (geojson.features.length > 1) geojson.features.pop();
 
         // Clear the distance container to populate it with a new value.
-        distanceContainer.innerHTML = '';
+        //distanceContainer.innerHTML = '';
 
         // If a feature was clicked, remove it from the map.
         if (features.length) {
@@ -112,10 +116,14 @@ export const measurePoints = (e, map, tb, lng, lat) => {
             const distance_km = turf.length(linestring);
             const distance_mi = distance_km * 0.62137;
             
-            value_km.textContent = `Total distance: ${distance_km.toLocaleString()} km`;
-            value_mi.textContent = `                ${distance_mi.toLocaleString()} mi`;
-            distanceContainer.appendChild(value_km);
-            distanceContainer.appendChild(value_mi);
+			//Not needed anymore since it was inside of the unwanted box
+            // value_km.textContent = `Total distance: ${distance_km.toLocaleString()} km`;
+            // value_mi.textContent = `                ${distance_mi.toLocaleString()} mi`;
+            // distanceContainer.appendChild(value_km);
+            // distanceContainer.appendChild(value_mi);
+			
+			dtstnceDisplay.textContent = `${distance_km.toLocaleString()} km`;
+			dtstnceDisplay_B.textContent = `${distance_mi.toLocaleString()} mi`;
         }
 
         map.getSource('geojson').setData(geojson);
