@@ -27,6 +27,9 @@ app.get('/backend/threejs/measurePoints.js', (req, res) => {
 app.get('/backend/api/weather.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'backend', 'api', 'weather.js'));
 });
+app.get('/frontend/src/mapClickHandlers.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'src', 'mapClickHandlers.js'));
+});
 app.get('/server.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'server.js'));
 });
