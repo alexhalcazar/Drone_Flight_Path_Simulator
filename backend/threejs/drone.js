@@ -1,5 +1,9 @@
+export let startLongitude = -118.14889916;
+export let startLatitude = 34.0681985;
+export let startAltitude = 9;
+
 export let drone;
-export let droneCoordinates = [-118.14889916, 34.0681985, 9];
+export let droneCoordinates = [startLongitude, startLatitude, startAltitude];
 
 export function addDrone(map, tb) {
     map.on('load', function() {

@@ -2,7 +2,7 @@ import { addDrone } from './drone.js';
 import { handleMapClick } from '../../frontend/src/mapClickHandlers.js';
 import { pointsLayer } from './measurePoints.js';
 import { droneCoordinates } from './drone.js';
-export let cube2;
+export let droneCube;
 // create a group to hold all building objects
 const buildingsGroup = new THREE.Group();
 // initalize a set to track generated buildings by their center coordinates to avoid duplication
@@ -159,7 +159,7 @@ function addRenderedBuildings(renderedBuildings) {
 
 // function to generate a cube and perform raycast to detect interesctions with buildings
 function generateCubeAndRaycast(tb, map) {
-    // define the origin point for the cube setting altitude to 0
+    // define the origin point for the enemy cube object setting altitude to 0
     // change the altitude to see if buildings are detected by cube
     const origin = [-118.14884916, 34.0664985, 10];
     // obtain a shallow copy of the droneCoordinates
@@ -176,25 +176,25 @@ function generateCubeAndRaycast(tb, map) {
         side: THREE.DoubleSide,
         transparent: true, opacity: 0.5 
     });
-    // create  a mesh with the geometry and material
-    let cube = new THREE.Mesh(geometry, material);
+    // create a mesh with the geometry and material
+    let enemyCube = new THREE.Mesh(geometry, material);
     // convert the cube to a Threebox object and set its coordinates
-    cube = tb
-        .Object3D({ obj: cube, units: 'meters', bbox: false })
+    enemyCube = tb
+        .Object3D({ obj: enemyCube, units: 'meters', bbox: false })
         .setCoords(origin);
     // add the cube to the Threebox scene.
-    tb.add(cube);
+    tb.add(enemyCube);
 
-    // create  a mesh with the geometry and material
-    cube2 = new THREE.Mesh(geometry2, material);
+    // create a mesh with the geometry and material
+    droneCube = new THREE.Mesh(geometry2, material);
     // convert the cube to a Threebox object and set its coordinates
-    cube2 = tb
-        .Object3D({ obj: cube2, units: 'meters', bbox: false })
+    droneCube = tb
+        .Object3D({ obj: droneCube, units: 'meters', bbox: false })
         .setCoords(droneOrigin);
     
     // add the cube to the Threebox scene.
-    tb.add(cube2);
-    buildingsGroup.add(cube2);
+    tb.add(droneCube);
+    buildingsGroup.add(droneCube);
     
     // instantiate a raycaster for detecting intersections
     const raycaster = new THREE.Raycaster();
@@ -202,7 +202,7 @@ function generateCubeAndRaycast(tb, map) {
     const direction = new THREE.Vector3(0, -1, 0);
     // set raycster origin and direction using cubes current position
     // direction is normalized (turned into a unit vector) to ensure consistent raycasting
-    raycaster.set(cube.position, direction.normalize());
+    raycaster.set(enemyCube.position, direction.normalize());
 
     // adding line to visualize raycaster
     const materialLine = new THREE.LineBasicMaterial({
@@ -210,10 +210,10 @@ function generateCubeAndRaycast(tb, map) {
     });
 
     const endPoint = new THREE.Vector3();
-    endPoint.copy(cube.position).add(direction.multiplyScalar(500));
+    endPoint.copy(enemyCube.position).add(direction.multiplyScalar(500));
 
     const geometryLine = new THREE.BufferGeometry().setFromPoints([
-        cube.position,
+        enemyCube.position,
         endPoint
     ]);
     let line = new THREE.Line(geometryLine, materialLine);

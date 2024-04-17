@@ -15,7 +15,7 @@ export const handleMapClick = (event, map, tb) => {
     lng = event.lngLat.lng;
     lat = event.lngLat.lat;
     getElevation();
-    measurePoints(event, map, tb, lng, lat);
+    measurePoints(event, map, tb);
 
 };
 

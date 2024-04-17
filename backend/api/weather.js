@@ -1,8 +1,7 @@
 // import 'dotenv/config'
-import { lng, lat } from '../../frontend/src/mapClickHandlers.js';
 
 // gets wind speed at 10m above ground 
-export const getWindSpeed = async () => {
+export const getWindSpeed = async (longitude, latitude) => {
     // currently unable to obtain username and password from .env file
     // const username = process.env.METEOMATICS_USERNAME
     // const password = process.env.METEOMATICS_PASSWORD
@@ -14,11 +13,9 @@ export const getWindSpeed = async () => {
     const currentDate = new Date();
     const formatDate = currentDate.toISOString();
 
-    console.log('lat', lat);
-    console.log('lng', lng);
     try {
         const token = await fetchToken(username, password);
-        const response = await fetch(`https://api.meteomatics.com/${formatDate}/wind_speed_10m:ms/${lat},${lng}/json?access_token=${token}`);
+        const response = await fetch(`https://api.meteomatics.com/${formatDate}/wind_speed_10m:ms/${latitude},${longitude}/json?access_token=${token}`);
         if (!response.ok) {
             throw new Error('Failed to fetch wind spped data');
         }
