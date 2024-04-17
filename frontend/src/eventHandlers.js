@@ -39,8 +39,8 @@ document.querySelector('#btn-reset-drone').addEventListener('click', () => {
 });
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
-    const name = document.querySelector(".quantityDropdown select")
-        [document.querySelector(".quantityDropdown select").selectedIndex].innerHTML;
+    const dropdown = document.getElementById("drones-drop-down");
+    const name = dropdown.value;
 
     let noiseLevel;
     let range;
@@ -54,10 +54,10 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
              endurance = drones[i].endurance;
              maxAltitude = drones[i].maxAltitude;
         }
-        console.log(noiseLevel, range, endurance, maxAltitude);
     }
-    document.getElementById("meters").innerHTML = noiseLevel;
-    document.getElementById("dB").innerHTML = range;
-    document.getElementById("km").innerHTML = endurance;
-    document.getElementById("min").innerHTML = maxAltitude;
+
+    document.getElementById("meters").innerHTML = maxAltitude + "  meters";
+    document.getElementById("dB").innerHTML = noiseLevel + "  dB";
+    document.getElementById("km").innerHTML = range + "  km";
+    document.getElementById("min").innerHTML = endurance + "  min";
 })
