@@ -37,6 +37,39 @@
             <div class="ui-block-a"><button id="toggleRadar" class="ui-block-a-btn">Toggle Radar Layer</button></div>
             <div class="ui-block-a"><button id="btn-animate" class="ui-block-a-btn">Play</button></div>
         </div>
+        <div class="drone-info">
+            <form>
+                <label for="drones" style="color:white">Choose drone model:</label>
+                <select name="drones" id="drones-drop-down">
+                  <option value="raven">RQ-11 Raven</option>
+                  <option value="shadow">RQ-7 Shadow</option>
+                  <option value="puma">RQ-20 Puma</option>
+                  <option value="wasp">RQ-12A Wasp III</option>
+                </select>
+                <br><br>
+              
+            </form>
+            <table border="1" style="width:300px">
+                <tbody>
+                    <tr>
+                        <td style="color:white; width:125px">Max Altitude</td>
+                        <td style="color:white; text-align:right" id="meters">meters</td>
+                    </tr>
+                    <tr>
+                        <td style="color:white">Noise Level</td>
+                        <td style="color:white; text-align:right" id="dB">dB</td>
+                    </tr>
+                    <tr>
+                        <td style="color:white">Range</td>
+                        <td style="color:white; text-align:right" id="km">km</td>
+                    </tr>
+                    <tr>
+                        <td style="color:white">Endurance</td>
+                        <td style="color:white; text-align:right" id="min">min</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
     <div id="main">
         <!-- Button to open the side bar-->
