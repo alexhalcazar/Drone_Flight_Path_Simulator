@@ -9,10 +9,6 @@ const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');
 const eleDisplay = document.getElementById('ele');
 
-// Distance experiment
-//const dtstnceDisplay = document.getElementById('dtstnce');
-
-
 export const handleMapClick = (event, map, tb) => {
     // When the map is clicked, set the lng and lat constants
         // equal to the lng and lat properties in the returned lngLat object.
