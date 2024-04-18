@@ -1,8 +1,25 @@
+import { rangeKM, rangeMI, droneSelected } from './threejsHandler.js';
+
 const droneCoordPath = [];
 
 let lng;
 let lat;
 let ruler;
+
+// GeoJSON object to hold our measurement features
+const geojson = {
+    type: 'FeatureCollection',
+    features: []
+};
+
+// Used to draw a line between points
+const linestring = {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: []
+    }
+};
 
 // Distance experiment
 const dtstnceDisplay = document.getElementById('dtstnce');
@@ -10,6 +27,15 @@ const dtstnceDisplay_B = document.getElementById('dtstnce-b');
 const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');
 const eleDisplay = document.getElementById('ele');
+
+// Variables to store km and distance of path to call in remaining drone distance function
+let droneMI;
+let droneKM;
+let remainingDistanceKM;
+let remainingDistanceMI;
+let numOfPoints = 0;
+const droneDistanceKM = document.getElementById('drone-distance-km');
+const droneDistanceMI = document.getElementById('drone-distance-mi');
 
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
@@ -50,21 +76,6 @@ async function getElevation() {
 function measurePoints(e, map, tb, lng, lat) {
     let popup;
     let startPoint;
-
-    // GeoJSON object to hold our measurement features
-    const geojson = {
-        type: 'FeatureCollection',
-        features: []
-    };
-    
-    // Used to draw a line between points
-    const linestring = {
-        type: 'Feature',
-        geometry: {
-            type: 'LineString',
-            coordinates: []
-        }
-    };
 
     if (ruler) {
         const features = map.queryRenderedFeatures(e.point, {
@@ -108,6 +119,7 @@ function measurePoints(e, map, tb, lng, lat) {
             );
 
             geojson.features.push(linestring);
+            numOfPoints++;
 
             // Populate the distanceContainer with total distance
             const value_km = document.createElement('pre');
@@ -115,6 +127,9 @@ function measurePoints(e, map, tb, lng, lat) {
             
             const distance_km = turf.length(linestring);
             const distance_mi = distance_km * 0.62137;
+
+            droneMI = distance_mi;
+            droneKM = distance_km;
 			
 	    dtstnceDisplay.textContent = `${distance_km.toLocaleString()} km`;
 	    dtstnceDisplay_B.textContent = `${distance_mi.toLocaleString()} mi`;
@@ -149,6 +164,7 @@ function measurePoints(e, map, tb, lng, lat) {
         document.querySelector("#btn-altitude").addEventListener("click", () => {
             userAltitude = document.querySelector("#altitude").value;
             addAltitude(userAltitude);
+            calculateDroneRange(numOfPoints, droneKM, droneMI, userAltitude);
         });
         
         // Adds altitude values to each point's coordinates and draws elevated line
@@ -183,6 +199,34 @@ function measurePoints(e, map, tb, lng, lat) {
                 tb.add(line2);
             }
          
+        }
+
+        // This function calculates the remaining drone range based on the plotted path
+        // Altitude is converted from meters to mi/km
+        function calculateDroneRange (numOfPoints, droneKM, droneMI, altitude) {
+            let subtractDistanceKM;
+            let subtractDistanceMI;
+            let altitudeKM = altitude * 0.001;
+            let altitudeMI = altitude * 0.000621371;
+            remainingDistanceKM = rangeKM;
+            remainingDistanceMI = rangeMI;
+            
+            if ( droneSelected == true && numOfPoints == 0) {
+                remainingDistanceKM = rangeKM;
+                remainingDistanceMI = rangeMI;
+            } else if (droneSelected == true && numOfPoints >= 1) {
+                subtractDistanceKM = Math.sqrt(Math.pow(droneKM, 2) + Math.pow(altitudeKM, 2));
+                subtractDistanceMI = Math.sqrt(Math.pow(droneMI, 2) + Math.pow(altitudeMI, 2));
+                remainingDistanceKM -= subtractDistanceKM;
+                remainingDistanceMI -= subtractDistanceMI;
+            }
+
+            let roundedKM = Number(remainingDistanceKM).toFixed(3);
+            let roundedMI = Number(remainingDistanceMI).toFixed(3);
+            
+            // After distance is calculated we update the distance values in the application
+            droneDistanceKM.textContent = `${roundedKM} km`;
+            droneDistanceMI.textContent = `${roundedMI} mi`;
         }
 
         // If a point is removed, remove the popup as well
