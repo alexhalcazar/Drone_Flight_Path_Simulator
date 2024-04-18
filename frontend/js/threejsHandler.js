@@ -1,58 +1,56 @@
-import { addDrone } from './drone.js';
-import { handleMapClick } from '../../frontend/src/mapClickHandlers.js';
-import { pointsLayer } from './measurePoints.js';
-import { droneCoordinates } from './drone.js';
+import { drone, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
+import { handleMapClick, droneCoordPath } from './mapClickHandlers.js';
+
 export let cube2;
 export let sphere;
+
+document.querySelector('#drones-drop-down').addEventListener('change', () => {
+    const dropdown = document.getElementById("drones-drop-down");
+    const name = dropdown.value;
+
+    let noiseLevel;
+    let range;
+    let endurance;
+    let maxAltitude;
+
+    for (let i = 0; i < drones.length; i++) {
+        if (name === drones[i].name) {
+             noiseLevel = drones[i].noiseLevel;
+             range = drones[i].range;
+             endurance = drones[i].endurance;
+             maxAltitude = drones[i].maxAltitude;
+        }
+    }
+
+    document.getElementById("meters").innerHTML = maxAltitude + "  meters";
+    document.getElementById("dB").innerHTML = noiseLevel + "  dB";
+    document.getElementById("km").innerHTML = range + "  km";
+    document.getElementById("min").innerHTML = endurance + "  min";
+});
+
+document.querySelector('#btn-move-drone').addEventListener('click', () => {
+    // Data for the path that the drone will follow as well as the duration of the animation
+    const options = {
+        path: droneCoordPath,
+        duration: 10000
+    }
+    // start the drone animation with above options, and remove the line when animation ends
+    drone.followPath(options);
+    cube2.followPath(options);
+    sphere.followPath(options);
+});
+
+document.querySelector('#btn-reset-drone').addEventListener('click', () => {
+    drone.setCoords([startLongitude, startLatitude, startAltitude]);
+    cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
+
+});
 // create a group to hold all building objects
 const buildingsGroup = new THREE.Group();
-// initalize a set to track generated buildings by their center coordinates to avoid duplication
-const generatedBuildings = new Set();
-
-// define the material for buildings
-let buildingMaterial = new THREE.MeshPhongMaterial({
-    //dark red color
-    color: 0x808080,
-    //render both sides of the polygon
-    side: THREE.DoubleSide,
-    // flat shading for a geometric look
-    flatShading: true
-});
 
 // function to keep re-invoking itself to create a continous animation loop
 function animate() {
     requestAnimationFrame(animate);
-}
-
-// iniialize threebox with the Mapbox GL JS map instance
-export function initializeThreeJS(map) {
-    const tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
-        // simulate sunlight based on time and location.
-        // not implemented fully
-        // use https://github.com/jscastro76/threebox/blob/master/examples/14-buildingshadow.html to implement
-        realSunlight: true,
-        // include default lighting
-        defaultLights: true,
-        // allow objects to be selectable
-        enableSelectingObjects: true,
-        // turining off tooltips, turn on for debugging
-        enableTooltips: false,
-        // allow objects to be dragable
-        // once selected hold
-        // ctrl: z-plane
-        // shift: x,y-plane
-        enableDraggingObjects: true
-    });
-    // expose the Threebox instance to the window so it can be accessed by the 3D objects
-    window.tb = tb;
-    // query building features and add to the map
-    queryBuildingFeatures(map, tb);
-    // add drone to map
-    addDrone(map, tb);
-    pointsLayer(map);
-    map.on('click', (e) => {
-        handleMapClick(e, map, tb);
-    });
 }
 
 // calculate the geographical center of a polygon (building)
@@ -117,6 +115,19 @@ function queryBuildingFeatures(map, tb) {
 
 // add rendered buildings to the Threebox scene
 function addRenderedBuildings(renderedBuildings) {
+    // initalize a set to track generated buildings by their center coordinates to avoid duplication
+    const generatedBuildings = new Set();
+
+    // define the material for buildings
+    let buildingMaterial = new THREE.MeshPhongMaterial({
+        //dark red color
+        color: 0x808080,
+        //render both sides of the polygon
+        side: THREE.DoubleSide,
+        // flat shading for a geometric look
+        flatShading: true
+    });
+
     renderedBuildings.forEach((feature) => {
         // calculate the geographical center of the building
         let center = calculatePolygonCenter(feature.geometry.coordinates);
@@ -262,14 +273,13 @@ function generateCubeAndRaycast(tb, map) {
 
         if(spherebound.intersectsBox(cube1bb)){
             noFlyZoneCube.userData.obj.material.color.set(0x000000);
-        }else{
+        } else {
             noFlyZoneCube.userData.obj.material.color.set(0x00FF00);
         }
         
         requestAnimationFrame(animating);
     }
     
-
     // create  a mesh with the geometry and material
     cube2 = new THREE.Mesh(geometry2, material);
     // convert the cube to a Threebox object and set its coordinates
@@ -323,3 +333,74 @@ function generateCubeAndRaycast(tb, map) {
         intersects[0].object.material.color.set(0x000099);    
     }
 }
+
+function pointsLayer(map) {
+    map.on('load', () => {
+        map.addSource('geojson', {
+            type: 'geojson',
+            data: {
+                type: 'FeatureCollection',
+                features: []
+            }
+        });
+
+        // Add styles to the map
+        map.addLayer({
+            id: 'measure-points',
+            type: 'circle',
+            source: 'geojson',
+            paint: {
+                'circle-radius': 5,
+                'circle-color': '#000'
+            },
+            filter: ['in', '$type', 'Point']
+        });
+        map.addLayer({
+            id: 'measure-lines',
+            type: 'line',
+            source: 'geojson',
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#000',
+                'line-width': 2.5
+            },
+            filter: ['in', '$type', 'LineString']
+        });
+    });
+}
+
+// iniialize threebox with the Mapbox GL JS map instance
+function initializeThreeJS(map) {
+    const tb = new Threebox(map, map.getCanvas().getContext('webgl'), {
+        // simulate sunlight based on time and location.
+        // not implemented fully
+        // use https://github.com/jscastro76/threebox/blob/master/examples/14-buildingshadow.html to implement
+        realSunlight: true,
+        // include default lighting
+        defaultLights: true,
+        // allow objects to be selectable
+        enableSelectingObjects: true,
+        // turining off tooltips, turn on for debugging
+        enableTooltips: false,
+        // allow objects to be dragable
+        // once selected hold
+        // ctrl: z-plane
+        // shift: x,y-plane
+        enableDraggingObjects: true
+    });
+    // expose the Threebox instance to the window so it can be accessed by the 3D objects
+    window.tb = tb;
+    // query building features and add to the map
+    queryBuildingFeatures(map, tb);
+    // add drone to map
+    addDrone(map, tb);
+    pointsLayer(map);
+    map.on('click', (e) => {
+        handleMapClick(e, map, tb);
+    });
+}
+
+export { initializeThreeJS };

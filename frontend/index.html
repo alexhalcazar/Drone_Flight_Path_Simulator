@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="../styles/main.css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-    <script src="https://unpkg.com/threebox-plugin/dist/threebox.min.js" type="text/javascript"></script>
-    <link href="https://unpkg.com/threebox-plugin/dist/threebox.css" rel="stylesheet" />
-    <script type="module" src="../backend/src/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/threebox-plugin@2.2.7/dist/threebox.min.js "></script>
+    <link href=" https://cdn.jsdelivr.net/npm/threebox-plugin@2.2.7/dist/threebox.min.css " rel="stylesheet">
+    <script type="module" src="./js/main.js"></script>
 </head>
 <body>
     <div id="mySidebar" class="sidebar">
@@ -96,8 +96,8 @@
             document.getElementById("main").style.marginLeft = "0px";
         }
     </script>
-    <script type="module" src="./eventHandlers.js"></script>
-    <script type="module" src="./mapClickHandlers.js"></script>
-    <script type="module" src="../../backend/threejs/drone.js"></script>
+    <script type="module" src="./js/drone.js"></script>
+    <script type="module" src="./js/mapClickHandlers.js"></script>
+    <script type="module" src="./js/weatherHandlers.js"></script>
 </body>
 </html>

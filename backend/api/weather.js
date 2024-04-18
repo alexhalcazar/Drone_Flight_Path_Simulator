@@ -1,18 +1,26 @@
-// import 'dotenv/config'
+require('dotenv').config();
+
+// weather router
+const router = require('express').Router();
+
+//define your API endpoint
+router.get('/weather', async (req, res) => {
+    const longitude = req.query.longitude;
+    const latitude = req.query.latitude;
+    const windSpeed = await getWindSpeed(longitude, latitude);
+    res.json({ windSpeed });
+});
+
+module.exports = router;
 
 // gets wind speed at 10m above ground 
-export const getWindSpeed = async (longitude, latitude) => {
-    // currently unable to obtain username and password from .env file
-    // const username = process.env.METEOMATICS_USERNAME
-    // const password = process.env.METEOMATICS_PASSWORD
+const getWindSpeed = async (longitude, latitude) => {
 
-    // for testing purposes hardcoding username and password
-    const username = 'calstatela_alcazar_alex';
-    const password = 'VXrWF93w4o';
-
+    const username = process.env.METEOMATICS_USERNAME
+    const password = process.env.METEOMATICS_PASSWORD
     const currentDate = new Date();
     const formatDate = currentDate.toISOString();
-
+ 
     try {
         const token = await fetchToken(username, password);
         const response = await fetch(`https://api.meteomatics.com/${formatDate}/wind_speed_10m:ms/${latitude},${longitude}/json?access_token=${token}`);

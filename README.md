@@ -35,7 +35,7 @@ npm start
 
 4. Access the server:
 
-Open your web browser and navigate to [local host](http://localhost:3000/src/index.html). <br>
+Open your web browser and navigate to [local host](http://localhost:3000). <br>
 You can use this server to explore and interact with the web application.
 
 ## Features
