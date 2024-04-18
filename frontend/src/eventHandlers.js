@@ -1,5 +1,6 @@
 import {drone} from "../../backend/threejs/drone.js"
 import { cube2 } from "../../backend/threejs/threejsSetup.js";
+import { sphere } from "../../backend/threejs/threejsSetup.js";
 import { droneCoordPath } from "../../backend/threejs/measurePoints.js";
 import { drones } from "../../backend/droneData/droneData.js";
 export let ruler;
@@ -23,13 +24,15 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         path: droneCoordPath,
         duration: 10000
     }
-
     // start the drone animation with above options, and remove the line when animation ends
     drone.followPath(
         options
     );
 
     cube2.followPath(
+        options
+    );
+    sphere.followPath(
         options
     );
 });
