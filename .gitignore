@@ -3,3 +3,6 @@ node_modules/
 
 # Mac OS system files
 .DS_Store
+
+# Ignore .env file containing sensitive information
+.env

@@ -1,7 +1,9 @@
-import {drone} from "../../backend/threejs/drone.js"
+import {drone, startLongitude, startLatitude, startAltitude } from "../../backend/threejs/drone.js"
 import { cube2 } from "../../backend/threejs/threejsSetup.js";
 import { sphere } from "../../backend/threejs/threejsSetup.js";
 import { droneCoordPath } from "../../backend/threejs/measurePoints.js";
+import { getWindSpeed } from "../../backend/api/weather.js";
+import { lng, lat } from "./mapClickHandlers.js";
 import { drones } from "../../backend/droneData/droneData.js";
 export let ruler;
 
@@ -29,7 +31,7 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         options
     );
 
-    cube2.followPath(
+    droneCube.followPath(
         options
     );
     sphere.followPath(
@@ -38,7 +40,23 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
-    drone.setCoords([-118.148512, 34.065868]);
+    drone.setCoords([startLongitude, startLatitude, startAltitude]);
+    cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
+
+});
+
+
+document.querySelector('#weather').addEventListener('click', async () => {
+
+    let windSpeed;
+    if(lng && lat){
+        windSpeed = await getWindSpeed(lng, lat);
+    } else {
+        windSpeed = await getWindSpeed(startLongitude, startLatitude);
+    }
+    
+    const windDisplay = document.getElementById('wind');
+    windDisplay.textContent = windSpeed;
 });
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {

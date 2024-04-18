@@ -2,20 +2,20 @@ import { measurePoints } from "../../backend/threejs/measurePoints.js";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibXljc2FsIiwiYSI6ImNsc2RtM2tvdzEyNnIybXQwcjI5d2tqcjAifQ.SqGe3A-JLNSkTCYluSpRnA';
 
-let lng;
-let lat;
+export let lng;
+export let lat;
 
 const lngDisplay = document.getElementById('lng');
 const latDisplay = document.getElementById('lat');
 const eleDisplay = document.getElementById('ele');
 
 export const handleMapClick = (event, map, tb) => {
-    // When the map is clicked, set the lng and lat constants
-        // equal to the lng and lat properties in the returned lngLat object.
-        lng = event.lngLat.lng;
-        lat = event.lngLat.lat;
-        getElevation();
-        measurePoints(event, map, tb, lng, lat);
+    // When the map is clicked, set the lng and lat
+    // equal to the lng and lat properties in the returned lngLat object.
+    lng = event.lngLat.lng;
+    lat = event.lngLat.lat;
+    getElevation();
+    measurePoints(event, map, tb);
 
 };
 

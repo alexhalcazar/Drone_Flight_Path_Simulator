@@ -1,5 +1,5 @@
 import {ruler} from "../../frontend/src/eventHandlers.js"
-
+import { lng, lat } from "../../frontend/src/mapClickHandlers.js";
 export const droneCoordPath = [];
 
 // Distance experiment
@@ -60,7 +60,7 @@ let popup;
 let startPoint;
 
 // Adds points to the map for the drone route when a user clicks 
-export const measurePoints = (e, map, tb, lng, lat) => {
+export const measurePoints = (e, map, tb) => {
     if (ruler) {
         const features = map.queryRenderedFeatures(e.point, {
             layers: ['measure-points']

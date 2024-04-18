@@ -160,7 +160,7 @@ function addRenderedBuildings(renderedBuildings) {
 
 // function to generate a cube and perform raycast to detect interesctions with buildings
 function generateCubeAndRaycast(tb, map) {
-    // define the origin point for the cube setting altitude to 0
+    // define the origin point for the enemy cube object setting altitude to 0
     // change the altitude to see if buildings are detected by cube
     const origin = [-118.14884916, 34.0664985, 10];
     // obtain a shallow copy of the droneCoordinates
@@ -177,7 +177,7 @@ function generateCubeAndRaycast(tb, map) {
         side: THREE.DoubleSide,
         transparent: true, opacity: 0.5 
     });
-    // create  a mesh with the geometry and material
+    // create a mesh with the geometry and material
     let cube = new THREE.Mesh(geometry, material);
     // convert the cube to a Threebox object and set its coordinates
     cube = tb
