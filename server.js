@@ -23,6 +23,9 @@ app.get('/backend/threejs/drone.js', (req, res) => {
 app.get('/backend/threejs/measurePoints.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'backend', 'threejs', 'measurePoints.js'));
 });
+app.get('/backend/droneData/droneData.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'backend', 'droneData', 'droneData.js'));
+});
 app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
 });
