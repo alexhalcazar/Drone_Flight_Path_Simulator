@@ -31,7 +31,7 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         options
     );
 
-    droneCube.followPath(
+    cube2.followPath(
         options
     );
     sphere.followPath(

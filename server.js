@@ -32,6 +32,7 @@ app.get('/frontend/src/mapClickHandlers.js', (req, res) => {
 });
 app.get('/server.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'server.js'));
+});
 app.get('/backend/droneData/droneData.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'backend', 'droneData', 'droneData.js'));
 });
