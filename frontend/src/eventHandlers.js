@@ -23,32 +23,6 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         path: droneCoordPath,
         duration: 10000
     }
-
-    //let sphereCoordPath=[];
-    
-    //console.log(droneCoordPath[0][0]+20000);
-    // for(let i=0;i<droneCoordPath.length;i++){
-        
-       
-
-    //     //droneCoordPath[i][0]+=200;
-    //     //droneCoordPath[i][1]+=200;
-        
-    //     let point= droneCoordPath[i][0];
-    //     let point2= droneCoordPath[i][1];
-
-    //     point-=0.0001;
-    //     point2-=0.0001;
-    //     let innerarr=[point,point2,droneCoordPath[i][2]];
-    //     sphereCoordPath.push(innerarr);
-
-    // }
-    // const options2 = {
-    //     path: sphereCoordPath,
-    //     duration: 10000
-    // }
-
-
     // start the drone animation with above options, and remove the line when animation ends
     drone.followPath(
         options
