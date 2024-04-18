@@ -1,4 +1,4 @@
-import { drone, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
+import { drone, addDrone, droneCoordinates, drones, startLongitude, startLatitude, startAltitude } from './drone.js';
 import { handleMapClick, droneCoordPath } from './mapClickHandlers.js';
 
 export let cube2;
