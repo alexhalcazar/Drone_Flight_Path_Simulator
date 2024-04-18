@@ -1,5 +1,5 @@
 import {drone, startLongitude, startLatitude, startAltitude } from "../../backend/threejs/drone.js"
-import { droneCube } from "../../backend/threejs/threejsSetup.js";
+import { cube2 } from "../../backend/threejs/threejsSetup.js";
 import { droneCoordPath } from "../../backend/threejs/measurePoints.js";
 import { getWindSpeed } from "../../backend/api/weather.js";
 import { lng, lat } from "./mapClickHandlers.js";
@@ -37,7 +37,7 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     drone.setCoords([startLongitude, startLatitude, startAltitude]);
-    droneCube.setCoords([startLongitude, startLatitude, startAltitude-2])
+    cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
 
 });
 

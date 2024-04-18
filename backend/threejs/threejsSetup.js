@@ -2,7 +2,7 @@ import { addDrone } from './drone.js';
 import { handleMapClick } from '../../frontend/src/mapClickHandlers.js';
 import { pointsLayer } from './measurePoints.js';
 import { droneCoordinates } from './drone.js';
-export let droneCube;
+export let cube2;
 // create a group to hold all building objects
 const buildingsGroup = new THREE.Group();
 // initalize a set to track generated buildings by their center coordinates to avoid duplication
@@ -177,24 +177,24 @@ function generateCubeAndRaycast(tb, map) {
         transparent: true, opacity: 0.5 
     });
     // create a mesh with the geometry and material
-    let enemyCube = new THREE.Mesh(geometry, material);
+    let cube = new THREE.Mesh(geometry, material);
     // convert the cube to a Threebox object and set its coordinates
-    enemyCube = tb
-        .Object3D({ obj: enemyCube, units: 'meters', bbox: false })
+    cube = tb
+        .Object3D({ obj: cube, units: 'meters', bbox: false })
         .setCoords(origin);
     // add the cube to the Threebox scene.
-    tb.add(enemyCube);
+    tb.add(cube);
 
     // create a mesh with the geometry and material
-    droneCube = new THREE.Mesh(geometry2, material);
+    cube2 = new THREE.Mesh(geometry2, material);
     // convert the cube to a Threebox object and set its coordinates
-    droneCube = tb
-        .Object3D({ obj: droneCube, units: 'meters', bbox: false })
+    cube2 = tb
+        .Object3D({ obj: cube2, units: 'meters', bbox: false })
         .setCoords(droneOrigin);
     
     // add the cube to the Threebox scene.
-    tb.add(droneCube);
-    buildingsGroup.add(droneCube);
+    tb.add(cube2);
+    buildingsGroup.add(cube2);
     
     // instantiate a raycaster for detecting intersections
     const raycaster = new THREE.Raycaster();
@@ -202,7 +202,7 @@ function generateCubeAndRaycast(tb, map) {
     const direction = new THREE.Vector3(0, -1, 0);
     // set raycster origin and direction using cubes current position
     // direction is normalized (turned into a unit vector) to ensure consistent raycasting
-    raycaster.set(enemyCube.position, direction.normalize());
+    raycaster.set(cube.position, direction.normalize());
 
     // adding line to visualize raycaster
     const materialLine = new THREE.LineBasicMaterial({
@@ -210,10 +210,10 @@ function generateCubeAndRaycast(tb, map) {
     });
 
     const endPoint = new THREE.Vector3();
-    endPoint.copy(enemyCube.position).add(direction.multiplyScalar(500));
+    endPoint.copy(cube.position).add(direction.multiplyScalar(500));
 
     const geometryLine = new THREE.BufferGeometry().setFromPoints([
-        enemyCube.position,
+        cube.position,
         endPoint
     ]);
     let line = new THREE.Line(geometryLine, materialLine);
