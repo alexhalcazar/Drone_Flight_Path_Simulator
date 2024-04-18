@@ -15,6 +15,8 @@ export function initializeMap() {
         bearing: 20,
         antialias: true
     });
+    const nav = new mapboxgl.NavigationControl();
+    map.addControl(nav, 'top-right');
     map.addControl(new mapboxgl.ScaleControl());
     initializeThreeJS(map);
 }

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSULA Army Research Labs SUAS Drone Flight Path Simulator</title>
     <link rel="stylesheet" href="../styles/main.css">
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <script src="https://unpkg.com/threebox-plugin/dist/threebox.min.js" type="text/javascript"></script>
-    <link href="https://unpkg.com/threebox-plugin/dist/threebox.css" rel="stylesheet" />>
+    <link href="https://unpkg.com/threebox-plugin/dist/threebox.css" rel="stylesheet" />
     <script type="module" src="../backend/src/main.js"></script>
 </head>
 <body>
@@ -22,8 +22,8 @@
             <div>Longitude: <span id="lng"></span></div>
             <div>Latitude: <span id="lat"></span></div>
             <div>Elevation: <span id="ele"></span></div>
-            <div>Distance:</div>
-            <div id="distance" class="distance-container"></div>
+	    <div>Distance (km): <span id="dtstnce"></span></div>
+	    <div>Distance (mi): <span id="dtstnce-b"></span></div>
         </div>
         <div class="ui-grid-b">
             <div class="ui-block-a"><button id="btn-ruler-on" class="ui-block-a-btn">Ruler On</button></div>
@@ -33,9 +33,11 @@
             <div class="ui-block-a"><button id="btn-spin" class="ui-block-a-btn">Pause rotation</button></div>
         </div>
         <div class="ui-grid-b">
-            <div class="ui-block-a"><button id="btn-collapse" class="ui-block-a-btn">C</button></div>
-            <div class="ui-block-a"><button id="toggleRadar" class="ui-block-a-btn">Toggle Radar Layer</button></div>
-            <div class="ui-block-a"><button id="btn-animate" class="ui-block-a-btn">Play</button></div>
+	    <div class="ui-block-a"><button id="add-detector" class="ui-block-a-btn">Add detector</button></div>
+	    <div class="ui-block-a"><button id="add-no-fly-zone" class="ui-block-a-btn">Add No-Fly Zone</button></div>
+        </div>
+	<div class="elevation-info">
+            <div>Drone Status: <span id="droneDetected">[Place holder]</span></div>
         </div>
         <div class="drone-info">
             <form>
