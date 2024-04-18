@@ -187,13 +187,10 @@ function generateCubeAndRaycast(tb, map) {
 
     let cube2bb=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
     cube2bb.setFromObject(cube);
-    //console.log(cube2bb);
 
     tb.add(cube);
 
-
     const geometryNoFly = new THREE.BoxGeometry(150, 350, 50);
-
 
     const materialNoFly = new THREE.MeshPhongMaterial({
         color: 0x8B0000,
@@ -252,7 +249,6 @@ function generateCubeAndRaycast(tb, map) {
     //allows the sphere to raycast
     let spherebound=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
     spherebound.setFromObject(sphere);
-    //console.log(cubeyesbb);
     tb.add(sphere);
 
     //animateing and constantly checking if obj intersectss
@@ -311,7 +307,6 @@ function generateCubeAndRaycast(tb, map) {
         .Object3D({ obj: line, units: 'meters', bbox: false })
         .setCoords(origin);
     tb.add(line);
-    //scene.add(new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 300, 0xff0000) );
 
     // use raycaster to detect intersections with children of the buildingsGroup object
     // true parameter indicates the method should check all descendants, not just direct children.
