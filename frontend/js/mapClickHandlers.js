@@ -72,6 +72,21 @@ async function getElevation() {
     eleDisplay.textContent = `${highestElevation} meters`;
 }
 
+// GeoJSON object to hold our measurement features
+const geojson = {
+    type: 'FeatureCollection',
+    features: []
+};
+
+// Used to draw a line between points
+const linestring = {
+    type: 'Feature',
+    geometry: {
+        type: 'LineString',
+        coordinates: []
+    }
+};
+
 // Adds points to the map for the drone route when a user clicks 
 function measurePoints(e, map, tb, lng, lat) {
     let popup;
