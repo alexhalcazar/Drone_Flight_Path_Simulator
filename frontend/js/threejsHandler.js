@@ -1,30 +1,34 @@
-import { drone, addDrone, droneCoordinates, drones, startLongitude, startLatitude, startAltitude } from './drone.js';
+import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
 import { handleMapClick, droneCoordPath } from './mapClickHandlers.js';
 
 export let cube2;
 export let sphere;
+export let rangeKM;
+export let rangeMI;
+export let droneSelected;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
     const name = dropdown.value;
 
     let noiseLevel;
-    let range;
     let endurance;
     let maxAltitude;
 
     for (let i = 0; i < drones.length; i++) {
         if (name === drones[i].name) {
              noiseLevel = drones[i].noiseLevel;
-             range = drones[i].range;
+             rangeKM = drones[i].range;
              endurance = drones[i].endurance;
              maxAltitude = drones[i].maxAltitude;
+             rangeMI = rangeKM * 0.62137;
+             droneSelected = true;
         }
     }
 
     document.getElementById("meters").innerHTML = maxAltitude + "  meters";
     document.getElementById("dB").innerHTML = noiseLevel + "  dB";
-    document.getElementById("km").innerHTML = range + "  km";
+    document.getElementById("km").innerHTML = rangeKM + "  km";
     document.getElementById("min").innerHTML = endurance + "  min";
 });
 
