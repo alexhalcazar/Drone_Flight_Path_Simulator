@@ -369,6 +369,7 @@ function generateCubeAndRaycast(tb) {
 
     tb.add(sphere);
 
+    
     enemyData['sphere']=sphere;
     enemyData['spherebound']=spherebound;
 
