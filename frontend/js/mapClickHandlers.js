@@ -1,51 +1,56 @@
-import {ruler} from "../../frontend/src/eventHandlers.js"
-import { lng, lat } from "../../frontend/src/mapClickHandlers.js";
-export const droneCoordPath = [];
+const droneCoordPath = [];
+
+let lng;
+let lat;
+let ruler;
 
 // Distance experiment
 const dtstnceDisplay = document.getElementById('dtstnce');
 const dtstnceDisplay_B = document.getElementById('dtstnce-b');
+const lngDisplay = document.getElementById('lng');
+const latDisplay = document.getElementById('lat');
+const eleDisplay = document.getElementById('ele');
+
+document.querySelector('#btn-ruler-on').addEventListener('click', () => {
+    ruler = true;
+    let outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = 'Ruler On';
+});
+
+document.querySelector('#btn-ruler-off').addEventListener('click', () => {
+    ruler = false;
+    let outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = 'Ruler Off';
+});
+
+async function getElevation() {
+    // Construct the API request.
+    mapboxgl.accessToken = 'pk.eyJ1IjoibXljc2FsIiwiYSI6ImNsc2RtM2tvdzEyNnIybXQwcjI5d2tqcjAifQ.SqGe3A-JLNSkTCYluSpRnA';
+    
+    const query = await fetch(
+        `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/${lng},${lat}.json?layers=contour&limit=50&access_token=${mapboxgl.accessToken}`,
+        { method: 'GET' }
+    );
+    if (query.status !== 200) return;
+    const data = await query.json();
+    // Display the longitude and latitude values.
+    lngDisplay.textContent = lng.toFixed(8);
+    latDisplay.textContent = lat.toFixed(8);
+    // Get all the returned features.
+    const allFeatures = data.features;
+    // For each returned feature, add elevation data to the elevations array.
+    const elevations = allFeatures.map((feature) => feature.properties.ele);
+    // In the elevations array, find the largest value.
+    const highestElevation = Math.max(...elevations);
+    // Display the largest elevation value.
+    eleDisplay.textContent = `${highestElevation} meters`;
+}
 
 // GeoJSON object to hold our measurement features
 const geojson = {
     type: 'FeatureCollection',
     features: []
 };
-
-export const pointsLayer = (map) => {
-    map.on('load', () => {
-        map.addSource('geojson', {
-            'type': 'geojson',
-            'data': geojson
-        });
-
-        // Add styles to the map
-        map.addLayer({
-            id: 'measure-points',
-            type: 'circle',
-            source: 'geojson',
-            paint: {
-                'circle-radius': 5,
-                'circle-color': '#000'
-            },
-            filter: ['in', '$type', 'Point']
-        });
-        map.addLayer({
-            id: 'measure-lines',
-            type: 'line',
-            source: 'geojson',
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            },
-            paint: {
-                'line-color': '#000',
-                'line-width': 2.5
-            },
-            filter: ['in', '$type', 'LineString']
-        });
-    });
-}
 
 // Used to draw a line between points
 const linestring = {
@@ -56,11 +61,11 @@ const linestring = {
     }
 };
 
-let popup;
-let startPoint;
-
 // Adds points to the map for the drone route when a user clicks 
-export const measurePoints = (e, map, tb) => {
+function measurePoints(e, map, tb, lng, lat) {
+    let popup;
+    let startPoint;
+
     if (ruler) {
         const features = map.queryRenderedFeatures(e.point, {
             layers: ['measure-points']
@@ -192,8 +197,16 @@ export const measurePoints = (e, map, tb) => {
         let outputDiv = document.getElementById('output');
         outputDiv.innerHTML = 'None';
     }
+}
 
-    
-};
+function handleMapClick(event, map, tb) {
+    // When the map is clicked, set the lng and lat
+    // equal to the lng and lat properties in the returned lngLat object.
+    lng = event.lngLat.lng;
+    lat = event.lngLat.lat;
+    getElevation();
+    measurePoints(event, map, tb, lng, lat);
 
+}
 
+export { handleMapClick, droneCoordPath, lng, lat };

@@ -1,9 +1,8 @@
-// import mapboxgl from 'mapbox-gl';
-import { initializeThreeJS } from '../threejs/threejsSetup.js';
+import { initializeThreeJS } from './threejsHandler.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibXljc2FsIiwiYSI6ImNsc2RtM2tvdzEyNnIybXQwcjI5d2tqcjAifQ.SqGe3A-JLNSkTCYluSpRnA';
-
-export function initializeMap() {
+document.addEventListener('DOMContentLoaded', () => {
+    mapboxgl.accessToken = 'pk.eyJ1IjoibXljc2FsIiwiYSI6ImNsc2RtM2tvdzEyNnIybXQwcjI5d2tqcjAifQ.SqGe3A-JLNSkTCYluSpRnA';
+    
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/outdoors-v12',
@@ -19,4 +18,4 @@ export function initializeMap() {
     map.addControl(nav, 'top-right');
     map.addControl(new mapboxgl.ScaleControl());
     initializeThreeJS(map);
-}
+});

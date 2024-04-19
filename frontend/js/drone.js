@@ -1,11 +1,11 @@
-export let startLongitude = -118.14889916;
-export let startLatitude = 34.0681985;
-export let startAltitude = 9;
+let startLongitude = -118.14889916;
+let startLatitude = 34.0681985;
+let startAltitude = 9;
+let drone;
+let droneCoordinates = [startLongitude, startLatitude, startAltitude];
+const drones = [];
 
-export let drone;
-export let droneCoordinates = [startLongitude, startLatitude, startAltitude];
-
-export function addDrone(map, tb) {
+function addDrone(map, tb) {
     map.on('load', function() {
         map.addLayer({
             id: 'drone',
@@ -16,7 +16,7 @@ export function addDrone(map, tb) {
                 // https://sketchfab.com/3d-models/metlife-building-32d3a4a1810a4d64abb9547bb661f7f3
                 const scale = 6;
                 const options = {
-                    obj: '../../frontend/scene.gltf',
+                    obj: '../scene.gltf',
                     type: 'gltf',
                     scale: { x: scale, y: scale, z: 10 },
                     units: 'meters',
@@ -37,3 +37,25 @@ export function addDrone(map, tb) {
         });
     });
 }
+
+function droneData(name, noiseLevel, range, endurance, maxAltitude) {
+    // Name of drone model
+    this.name = name,
+    // Measured in decibles
+    this.noiseLevel = noiseLevel,
+    // Measured in kilometers
+    this.range = range,
+    // Measured in minutes
+    this.endurance = endurance,
+    // Measured in meters
+    this.maxAltitude = maxAltitude
+};
+
+const raven = new droneData("RQ-11 Raven", 70, 10, 90, 152);
+const shadow = new droneData("RQ-7 Shadow", 70, 109.5, 360, 3200);
+const puma = new droneData("RQ-20 Puma", 70, 15, 120, 152);
+const wasp = new droneData("RQ-12A Wasp III", 70, 5, 45, 300);
+
+drones.push(raven, shadow, puma, wasp);
+
+export { drone, drones, droneCoordinates, addDrone, startLongitude, startLatitude, startAltitude};
