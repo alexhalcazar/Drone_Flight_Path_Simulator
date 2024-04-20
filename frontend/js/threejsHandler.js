@@ -1,6 +1,7 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
 import { handleMapClick, droneCoordPath,lng,lat } from './mapClickHandlers.js';
 
+
 export let cube2;
 export let sphere;
 export let rangeKM;
@@ -223,7 +224,9 @@ function generateDroneCube(tb){
     
     sphereOrigin[2]-=2;
     
-    const geometrySphere =  new THREE.SphereGeometry( 15, 32, 16 ); 
+    const geometrySphere =  new THREE.SphereGeometry( 10 ); 
+
+
 
     const materialSphere = new THREE.MeshPhongMaterial({
         color: 0xFFFF00,
@@ -232,15 +235,30 @@ function generateDroneCube(tb){
     });
 
     //sphere obj created
-    sphere = new THREE.Mesh(geometrySphere, materialSphere);
-    sphere.geometry.computeBoundingBox();
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load( 'frontend/seamless-grunge-hazard-yellow-stripes-texture-1930.jpg' );
+    texture.colorSpace = THREE.SRGBColorSpace;
+    
+    const m = new THREE.MeshBasicMaterial({
+    map: texture,
+    });
+    sphere = new THREE.Mesh(geometrySphere, m);
+
+
+    sphere.geometry.computeBoundingSphere();
+
+
     sphere = tb
         .Object3D({ obj: sphere, units: 'meters', bbox: false })
         .setCoords(sphereOrigin);
     // add the cube to the Threebox scene.
     //allows the sphere to raycast
-    spherebound=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
-    spherebound.setFromObject(sphere);
+    spherebound=new THREE.Sphere(sphere.position.clone(),10);
+    //var ballbb = new THREE.Sphere(, 70)
+
+
+
+
     tb.add(sphere);
 
     createObjectPoint(tb,sphere,spherebound);
@@ -267,7 +285,7 @@ function createObjectPoint(tb,sphere,spherebound){
     ObjectPointBB.setFromObject(ObjectPoint);
     tb.add(ObjectPoint);
 
-    //animateEndPoint(ObjectPointBB,ObjectPoint,spherebound,sphere);
+    
     animateEndPoint()
     
 
@@ -276,8 +294,8 @@ function createObjectPoint(tb,sphere,spherebound){
 function animateEndPoint(){
 
     ObjectPointBB.copy(ObjectPoint.userData.obj.geometry.boundingBox).applyMatrix4(ObjectPoint.userData.obj.matrixWorld);
-   
-    spherebound.copy(sphere.userData.obj.geometry.boundingBox).applyMatrix4(sphere.userData.obj.matrixWorld);
+    
+    spherebound.copy(sphere.userData.obj.geometry.boundingSphere).applyMatrix4(sphere.userData.obj.matrixWorld);
 
     if(spherebound.intersectsBox(ObjectPointBB)){
         ObjectPoint.userData.obj.material.color.set(0x000000);
@@ -286,26 +304,26 @@ function animateEndPoint(){
     }
     
     enemyObjects.forEach((object) => {
-        object.spherebound.copy(object.sphere.userData.obj.geometry.boundingBox).applyMatrix4(object.sphere.userData.obj.matrixWorld);
+        object.spherebound.copy(object.sphere.userData.obj.geometry.boundingSphere).applyMatrix4(object.sphere.userData.obj.matrixWorld);
         
-        if(spherebound.intersectsBox(object.spherebound)){
+        if(spherebound.intersectsSphere(object.spherebound)){
             object.sphere.userData.obj.material.color.set(0x000000);
         } else {
             object.sphere.userData.obj.material.color.set(0x00FF00);
         }
         
     });
-    if(enemies){
+    // if(enemies){
 
         
-        if (intersects.length > 0 ) {
-            console.log(intersects.length);
-            // if intersect is detected, chnge the color of the intersected objects to blue
-            intersects[0].object.material.color.set(0x000099);    
+    //     if (intersects.length > 0 ) {
+    //         console.log(intersects.length);
+    //         // if intersect is detected, chnge the color of the intersected objects to blue
+    //         intersects[0].object.material.color.set(0x000099);    
 
-        }
+    //     }
 
-    }
+    // }
     
     requestAnimationFrame(animateEndPoint);
     
@@ -348,8 +366,8 @@ function generateCubeAndRaycast(tb) {
     tb.add(cube);
     
     
-    const geometrySphere =  new THREE.SphereGeometry( 15, 32, 16 ); 
-
+    const geometrySphere =  new THREE.SphereGeometry( 10 ); 
+    geometrySphere.computeBoundingSphere();
     const materialSphere = new THREE.MeshPhongMaterial({
         color: 0xFFFF00,
         side: THREE.DoubleSide,
@@ -358,18 +376,17 @@ function generateCubeAndRaycast(tb) {
 
     //sphere obj created
     sphere = new THREE.Mesh(geometrySphere, materialSphere);
-    sphere.geometry.computeBoundingBox();
+    
     sphere = tb
         .Object3D({ obj: sphere, units: 'meters', bbox: false })
         .setCoords(cubeOrigin);
     // add the cube to the Threebox scene.
     //allows the sphere to raycast
-    let spherebound=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
-    spherebound.setFromObject(sphere);
+    let spherebound=new THREE.Sphere(sphere.position.clone(),10);
 
     tb.add(sphere);
 
-    
+
     enemyData['sphere']=sphere;
     enemyData['spherebound']=spherebound;
 
