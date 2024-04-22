@@ -4,7 +4,7 @@ const droneCoordPath = [];
 
 let lng;
 let lat;
-let ruler;
+let ruler = false;
 
 // GeoJSON object to hold our measurement features
 const geojson = {
@@ -37,17 +37,33 @@ let numOfPoints = 0;
 const droneDistanceKM = document.getElementById('drone-distance-km');
 const droneDistanceMI = document.getElementById('drone-distance-mi');
 
-document.querySelector('#btn-ruler-on').addEventListener('click', () => {
-    ruler = true;
+document.querySelector('#btn-ruler-on').addEventListener('click', (e) => {
+    // ruler = true;
     let outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = 'Ruler On';
+    // outputDiv.innerHTML = 'Ruler On';
+
+    if(ruler === false){
+        ruler = true;
+        let outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = 'Ruler On';
+        // innerHTML = 'Ruler Off';
+        return e.target.innerHTML= 'Ruler Off';
+    }
+    else{
+        ruler = false;
+        let outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = 'Ruler Off';
+        // this.innerHTML = 'Ruler On';
+        return e.target.innerHTML = 'Ruler On';
+    }
+
 });
 
-document.querySelector('#btn-ruler-off').addEventListener('click', () => {
-    ruler = false;
-    let outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = 'Ruler Off';
-});
+// document.querySelector('#btn-ruler-off').addEventListener('click', () => {
+//     ruler = false;
+//     let outputDiv = document.getElementById('output');
+//     outputDiv.innerHTML = 'Ruler Off';
+// });
 
 async function getElevation() {
     // Construct the API request.
