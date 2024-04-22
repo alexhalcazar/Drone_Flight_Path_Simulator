@@ -1,5 +1,5 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
-import { handleMapClick, droneCoordPath,lng,lat } from './mapClickHandlers.js';
+import { handleMapClick, droneCoordPath, lng, lat } from './mapClickHandlers.js';
 
 export let cube2;
 export let sphere;
@@ -8,11 +8,11 @@ export let rangeMI;
 export let droneSelected;
 let copytb;
 
-let ObjectPointBB,ObjectPoint,spherebound;
-const enemyObjects=[];
+let ObjectPointBB, ObjectPoint, spherebound;
+const enemyObjects = [];
 
 let intersects;
-let enemies=false;
+let enemies = false;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -190,9 +190,7 @@ document.querySelector('#enemyButton').addEventListener('click', () => {
 
 function generateDroneCube(tb){
     copytb=tb;
-    
-
-     // define the origin point for the enemy cube object setting altitude to 0
+    // define the origin point for the enemy cube object setting altitude to 0
     // change the altitude to see if buildings are detected by cube
     const origin = [-118.14884916, 34.0664985, 10];
     // obtain a shallow copy of the droneCoordinates
@@ -216,18 +214,11 @@ function generateDroneCube(tb){
     // add the cube to the Threebox scene.
     tb.add(cube2);
 
-    // let cubebb=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
-    // cubebb.setFromObject(cube);
-
     //sphere coordinates
     let sphereOrigin = droneCoordinates.slice();
-    
     sphereOrigin[2]-=2;
     
     const geometrySphere =  new THREE.SphereGeometry( 10 ); 
-
-
-
     const materialSphere = new THREE.MeshPhongMaterial({
         color: 0xFFFF00,
         side: THREE.DoubleSide,
@@ -236,8 +227,6 @@ function generateDroneCube(tb){
 
     //sphere obj created
     const loader = new THREE.TextureLoader();
-    
-    
     const texture = loader.load( './textures/texture.jpg');
     texture.colorSpace = THREE.SRGBColorSpace;
     const m = new THREE.MeshBasicMaterial({
@@ -248,30 +237,19 @@ function generateDroneCube(tb){
     });
     sphere = new THREE.Mesh(geometrySphere, m);
     sphere.geometry.computeBoundingSphere();
-
-
     sphere = tb
         .Object3D({ obj: sphere, units: 'meters', bbox: false })
         .setCoords(sphereOrigin);
     // add the cube to the Threebox scene.
-    //allows the sphere to raycast
+    // allows the sphere to raycast
     spherebound=new THREE.Sphere(sphere.position.clone(),10);
-    //var ballbb = new THREE.Sphere(, 70)
-
-
-
-
     tb.add(sphere);
-
-    createObjectPoint(tb,sphere,spherebound);
-
+    createObjectPoint(tb, sphere, spherebound);
 }
 
 function createObjectPoint(tb,sphere,spherebound){
-
-
+    
     const geometryObjectPoint = new THREE.BoxGeometry(150, 350, 50);
-
     const materialObjectPoint = new THREE.MeshPhongMaterial({
         color: 0x8B0000,
         side: THREE.DoubleSide,
@@ -286,11 +264,7 @@ function createObjectPoint(tb,sphere,spherebound){
     ObjectPointBB=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
     ObjectPointBB.setFromObject(ObjectPoint);
     tb.add(ObjectPoint);
-
-    
     animateEndPoint()
-    
-
 }
 
 function animateEndPoint(){
@@ -394,22 +368,13 @@ function generateCubeAndRaycast(tb) {
     let Espherebound=new THREE.Sphere(Esphere.position.clone(),height-7);
 
     tb.add(Esphere);
-
-
     enemyData['Esphere']=Esphere;
     enemyData['Espherebound']=Espherebound;
-
     enemyObjects.push(enemyData);
 
-
-
     //animateing and constantly checking if obj intersectss
-    
-    
-    
     buildingsGroup.add(cube);
 
-    
     // instantiate a raycaster for detecting intersections
     const raycaster = new THREE.Raycaster();
     // set the direction of the raycast to the
@@ -436,7 +401,6 @@ function generateCubeAndRaycast(tb) {
         .setCoords(cubeOrigin);
     tb.add(line);
 
-    
     // use raycaster to detect intersections with children of the buildingsGroup object
     // true parameter indicates the method should check all descendants, not just direct children.
 
@@ -450,11 +414,7 @@ function generateCubeAndRaycast(tb) {
     // log the intersections to the console for debugging
     // console.log('intersects', intersects);
     
-    
 }
-
-
-
 
 function pointsLayer(map) {
     map.on('load', () => {
