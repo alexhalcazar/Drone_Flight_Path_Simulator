@@ -7,6 +7,20 @@ export let rangeKM;
 export let rangeMI;
 export let droneSelected;
 
+//Default values set for the drone list
+let noiseLevel = drones[0].noiseLevel;
+let endurance = drones[0].endurance;
+let maxAltitude = drones[0].maxAltitude;
+rangeKM = drones[0].range;
+rangeMI = rangeKM * 0.62137;
+droneSelected = true;
+
+document.getElementById("meters").innerHTML = maxAltitude + "  meters";
+document.getElementById("dB").innerHTML = noiseLevel + "  dB";
+document.getElementById("km").innerHTML = rangeKM + "  km";
+document.getElementById("min").innerHTML = endurance + "  min";
+
+
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
     const name = dropdown.value;
@@ -23,7 +37,7 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
              maxAltitude = drones[i].maxAltitude;
              rangeMI = rangeKM * 0.62137;
              droneSelected = true;
-        }
+        } 
     }
 
     document.getElementById("meters").innerHTML = maxAltitude + "  meters";
