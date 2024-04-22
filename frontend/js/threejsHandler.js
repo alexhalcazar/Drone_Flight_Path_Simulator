@@ -1,6 +1,6 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
 import { handleMapClick, droneCoordPath,lng,lat } from './mapClickHandlers.js';
-
+import headImage from './frontend/textures/Hely_normal.png';
 
 export let cube2;
 export let sphere;
@@ -236,7 +236,8 @@ function generateDroneCube(tb){
 
     //sphere obj created
     const loader = new THREE.TextureLoader();
-    const texture = loader.load( 'frontend/seamless-grunge-hazard-yellow-stripes-texture-1930.jpg' );
+    
+    const texture = loader.load( headImage);
     texture.colorSpace = THREE.SRGBColorSpace;
     
     const m = new THREE.MeshBasicMaterial({
