@@ -389,7 +389,7 @@ function generateCubeAndRaycast(tb) {
     });
 
     const endPoint = new THREE.Vector3();
-    endPoint.copy(cube.position).add(direction);
+    endPoint.copy(cube.position).add(direction.multiplyScalar(500));
 
     const geometryLine = new THREE.BufferGeometry().setFromPoints([
         cube.position,
