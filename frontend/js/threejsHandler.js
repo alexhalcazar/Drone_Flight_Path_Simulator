@@ -1,6 +1,5 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
 import { handleMapClick, droneCoordPath,lng,lat } from './mapClickHandlers.js';
-import headImage from './frontend/textures/Hely_normal.png';
 
 export let cube2;
 export let sphere;
@@ -126,6 +125,7 @@ function queryBuildingFeatures(map, tb) {
         });
         addRenderedBuildings(newRenderedBuildings, tb);
     });
+
 }
 
 // add rendered buildings to the Threebox scene
@@ -237,15 +237,16 @@ function generateDroneCube(tb){
     //sphere obj created
     const loader = new THREE.TextureLoader();
     
-    const texture = loader.load( headImage);
-    texture.colorSpace = THREE.SRGBColorSpace;
     
+    const texture = loader.load( './textures/texture.jpg');
+    texture.colorSpace = THREE.SRGBColorSpace;
     const m = new THREE.MeshBasicMaterial({
     map: texture,
+    transparent: true,
+    side: THREE.DoubleSide,
+    opacity: 0.25 
     });
     sphere = new THREE.Mesh(geometrySphere, m);
-
-
     sphere.geometry.computeBoundingSphere();
 
 
@@ -305,12 +306,16 @@ function animateEndPoint(){
     }
     
     enemyObjects.forEach((object) => {
-        object.spherebound.copy(object.sphere.userData.obj.geometry.boundingSphere).applyMatrix4(object.sphere.userData.obj.matrixWorld);
         
-        if(spherebound.intersectsSphere(object.spherebound)){
-            object.sphere.userData.obj.material.color.set(0x000000);
+        object.Espherebound.copy(object.Esphere.userData.obj.geometry.boundingSphere).applyMatrix4(object.Esphere.userData.obj.matrixWorld);
+        
+        if(spherebound.intersectsSphere(object.Espherebound)){
+            object.Esphere.userData.obj.material.color.set(0xFF0000 );
+            object.Esphere.userData.obj.material.opacity=1.0;
         } else {
-            object.sphere.userData.obj.material.color.set(0x00FF00);
+            object.Esphere.userData.obj.material.color.set(0xFFFF00);
+            object.Esphere.userData.obj.material.opacity=.15;
+            
         }
         
     });
@@ -334,13 +339,13 @@ function generateCubeAndRaycast(tb) {
 
     let enemyData={};
 
-    const geometry2 = new THREE.BoxGeometry(5, 5, 5);
+    const geometry2 = new THREE.BoxGeometry(1, 1, 3);
     // create  a mesh with the geometry and material
 
     let material = new THREE.MeshPhongMaterial({
         color: 0xFF0000,
         side: THREE.DoubleSide,
-        transparent: true, opacity: 1
+        transparent: true, opacity: 1,depthTest: false
     });
 
     let cube = new THREE.Mesh(geometry2, material);
@@ -357,7 +362,8 @@ function generateCubeAndRaycast(tb) {
         latitude=lat;
 
     }
-    let cubeOrigin = [longitude ,latitude, 17];
+    const height=17;
+    let cubeOrigin = [longitude ,latitude, height];
     
     cube = tb
         .Object3D({ obj: cube, units: 'meters', bbox: false })
@@ -372,24 +378,26 @@ function generateCubeAndRaycast(tb) {
     const materialSphere = new THREE.MeshPhongMaterial({
         color: 0xFFFF00,
         side: THREE.DoubleSide,
-        transparent: true, opacity: 0.25 
+        transparent: true, opacity: 0.05 
     });
 
     //sphere obj created
-    sphere = new THREE.Mesh(geometrySphere, materialSphere);
+    let Esphere = new THREE.Mesh(geometrySphere, materialSphere);
     
-    sphere = tb
-        .Object3D({ obj: sphere, units: 'meters', bbox: false })
-        .setCoords(cubeOrigin);
+    let EsphereOrigin = [longitude-.0001 ,latitude-.0001, 10];
+    Esphere = tb
+        .Object3D({ obj: Esphere, units: 'meters', bbox: false })
+        .setCoords(EsphereOrigin);
     // add the cube to the Threebox scene.
     //allows the sphere to raycast
-    let spherebound=new THREE.Sphere(sphere.position.clone(),10);
+    
+    let Espherebound=new THREE.Sphere(Esphere.position.clone(),height-7);
 
-    tb.add(sphere);
+    tb.add(Esphere);
 
 
-    enemyData['sphere']=sphere;
-    enemyData['spherebound']=spherebound;
+    enemyData['Esphere']=Esphere;
+    enemyData['Espherebound']=Espherebound;
 
     enemyObjects.push(enemyData);
 
@@ -416,7 +424,7 @@ function generateCubeAndRaycast(tb) {
     });
 
     const endPoint = new THREE.Vector3();
-    endPoint.copy(cube.position).add(direction.multiplyScalar(500));
+    endPoint.copy(cube.position).add(direction);
 
     const geometryLine = new THREE.BufferGeometry().setFromPoints([
         cube.position,
@@ -445,20 +453,6 @@ function generateCubeAndRaycast(tb) {
     
 }
 
-// function animating(ObjectPointBB,ObjectPoint){
-
-//     ObjectPointBB.copy(ObjectPoint.userData.obj.geometry.boundingBox).applyMatrix4(ObjectPoint.userData.obj.matrixWorld);
-   
-//     spherebound.copy(sphere.userData.obj.geometry.boundingBox).applyMatrix4(sphere.userData.obj.matrixWorld);
-
-//     if(spherebound.intersectsBox(ObjectPointBB)){
-//         ObjectPoint.userData.obj.material.color.set(0x000000);
-//     } else {
-//         ObjectPoint.userData.obj.material.color.set(0x00FF00);
-//     }
-    
-//     requestAnimationFrame(animating);
-// }
 
 
 
