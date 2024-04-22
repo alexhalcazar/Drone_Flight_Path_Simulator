@@ -5,6 +5,7 @@ const droneCoordPath = [];
 let lng;
 let lat;
 let ruler = false;
+let sidebar = false;
 
 // GeoJSON object to hold our measurement features
 const geojson = {
@@ -57,6 +58,22 @@ document.querySelector('#btn-ruler-on').addEventListener('click', (e) => {
         return e.target.innerHTML = 'Ruler On';
     }
 
+});
+
+document.querySelector('#sidebar-btn').addEventListener('click', (e) => {
+    if(sidebar === false){
+        sidebar = true;
+        document.getElementById("mySidebar").style.width = "310px";
+        document.getElementById("main").style.marginLeft = "320px";
+        return e.target.innerHTML = 'Close';
+    }
+    else{
+        sidebar = false;
+        document.getElementById("mySidebar").style.width = "0px";
+        document.getElementById("mySidebar").style.padding = "0px";
+        document.getElementById("main").style.marginLeft = "0px";
+        return e.target.innerHTML = 'Open';
+    }
 });
 
 // document.querySelector('#btn-ruler-off').addEventListener('click', () => {
