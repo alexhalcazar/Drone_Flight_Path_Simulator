@@ -1,5 +1,5 @@
-import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
-import { handleMapClick, droneCoordPath } from './mapClickHandlers.js';
+import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude, droneCurrentLocation } from './drone.js';
+import { handleMapClick, droneCoordPath, lng, lat } from './mapClickHandlers.js';
 
 export let cube2;
 export let sphere;
@@ -20,6 +20,8 @@ document.getElementById("dB").innerHTML = noiseLevel + "  dB";
 document.getElementById("km").innerHTML = rangeKM + "  km";
 document.getElementById("min").innerHTML = endurance + "  min";
 
+
+let wasPaused = false;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -52,10 +54,23 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         path: droneCoordPath,
         duration: 10000
     }
-    // start the drone animation with above options, and remove the line when animation ends
+
+    if (wasPaused == true) {
+        let newPath = [droneCurrentLocation, ...droneCoordPath.slice(1)];
+        options.path = newPath;
+    }
+
+    // start the drone animation with above options
     drone.followPath(options);
     cube2.followPath(options);
     sphere.followPath(options);
+});
+
+document.querySelector('#pause').addEventListener('click', (e) => {
+    drone.stop();
+    cube2.stop();
+    sphere.stop();
+    wasPaused = true;
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
