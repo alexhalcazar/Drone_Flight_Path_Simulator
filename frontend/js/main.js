@@ -20,4 +20,5 @@ document.addEventListener('DOMContentLoaded', () => {
     map.addControl(nav, 'top-right');
     map.addControl(new mapboxgl.ScaleControl());
     initializeThreeJS(map);
+    localStorage.removeItem('selectedCoords');
 });
