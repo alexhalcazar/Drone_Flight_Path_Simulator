@@ -13,75 +13,46 @@ function initializeARMap() {
     map.addControl(new MapboxStyleSwitcherControl());
     map.addControl(new mapboxgl.ScaleControl());
 
-    map.on('load', function() {
-        fetch('../../geojson/airports.geojson')
-            .then(response => response.json())
-            .then(data => {
-                map.addSource('airports', {
-                    type: 'geojson',
-                    data: data
-                });
-                map.addLayer({
-                    id: 'airports',
-                    type: 'fill',
-                    source: 'airports',
-                    layout: {},
-                    paint: {
-                        'fill-color': '#00ff00', 
-                        'fill-opacity': 0.5,
-                        'fill-outline-color': '#000000',
-                    }
-                });
-            });
-    });
-    
-    map.on('load', function() {
-        fetch('../../geojson/us_national_park.geojson')
-            .then(response => response.json())
-            .then(data => {
-                map.addSource('us_national_park', {
-                    type: 'geojson',
-                    data: data
-                });
-                map.addLayer({
-                    id: 'us_national_park',
-                    type: 'fill',
-                    source: 'us_national_park',
-                    layout: {},
-                    paint: {
-                        'fill-color': '#0000ff',
-                        'fill-opacity': 0.5,
-                        'fill-outline-color': '#000000',
-                    }
-                });
-            });
-    });
-    
-    map.on('load', function() {
-        fetch('../../geojson/us_military.geojson')
-            .then(response => response.json())
-            .then(data => {
-                map.addSource('us_military', {
-                    type: 'geojson',
-                    data: data
-                });
-                map.addLayer({
-                    id: 'us_military',
-                    type: 'fill',
-                    source: 'us_military',
-                    layout: {},
-                    paint: {
-                        'fill-color': '#ff0000',
-                        'fill-opacity': 0.5,
-                        'fill-outline-color': '#000000',
-                    }
-                });
-            });
-    });
     map.on('click', function(e) {
         const { lng, lat } = e.lngLat;
         localStorage.setItem('selectedCoords', JSON.stringify({ lng, lat }));
         window.location.href = 'index.html'
+    });
+
+    map.on('load', function() {
+        addLayers(map);
+    });
+
+    map.on('style.load', function() {
+        addLayers(map);
+    });
+}
+
+function addLayers(map) {
+    ['us_military', 'airports', 'us_national_park'].forEach(item => {
+        fetch(`../../geojson/${item}.geojson`)
+            .then(response => response.json())
+            .then(data => {
+                if (map.getSource(item)) {
+                    map.removeLayer(item);
+                    map.removeSource(item);
+                }
+                map.addSource(item, {
+                    type: 'geojson',
+                    data: data
+                });
+                map.addLayer({
+                    id: item,
+                    type: 'fill',
+                    source: item,
+                    layout: {},
+                    paint: {
+                        'fill-color': item === 'airports' ? '#ffff66' : (item === 'us_national_park' ? '#ffb266' : '#ff6666'),
+                        'fill-opacity': 0.5,
+                        'fill-outline-color': '#000000',
+                    }
+                });
+            });
     });
 }
 
