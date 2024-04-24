@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/outdoors-v12',
+        style: 'mapbox://styles/mapbox/streets-v12',
         projection: 'globe',
         center: centerCoords,
         zoom: 19,

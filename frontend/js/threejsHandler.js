@@ -13,6 +13,7 @@ const enemyObjects = [];
 
 let intersects;
 let enemies = false;
+let buildingGenerationEnabled = true;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -59,6 +60,7 @@ document.querySelector('#btn-reset-drone').addEventListener('click', () => {
 
 // create a group to hold all building objects
 const buildingsGroup = new THREE.Group();
+const generatedBuildings = new Set();
 
 // function to keep re-invoking itself to create a continous animation loop
 function animate() {
@@ -110,7 +112,7 @@ function queryBuildingFeatures(map, tb) {
                 // generate a cube for raycasting demo
                 generateDroneCube(tb);
                 
-                //generateCubeAndRaycast(tb, map);
+                // generateCubeAndRaycast(tb, map);
             },
             render: function (gl, matrix) {
                 // updates Threebox scene
@@ -120,69 +122,75 @@ function queryBuildingFeatures(map, tb) {
     });
     // requery features when the map is moved and adding buildings to the map
     map.on('moveend', function () {
-        const newRenderedBuildings = map.queryRenderedFeatures({
-            layers: ['building']
+        const newRenderedBuildings = map.queryRenderedFeatures({layers: ['building']});
+        // Filter out buildings already processed
+        const filteredBuildings = newRenderedBuildings.filter(feature => {
+            let center = calculatePolygonCenter(feature.geometry.coordinates);
+            const id = `${center.longitude},${center.latitude}`;
+            return !generatedBuildings.has(id);
         });
-        addRenderedBuildings(newRenderedBuildings, tb);
+
+        if (filteredBuildings.length > 0) {
+            addRenderedBuildings(filteredBuildings, tb);
+        }
     });
 
 }
 
 // add rendered buildings to the Threebox scene
 function addRenderedBuildings(renderedBuildings) {
-    // initalize a set to track generated buildings by their center coordinates to avoid duplication
-    const generatedBuildings = new Set();
-
-    // define the material for buildings
-    let buildingMaterial = new THREE.MeshPhongMaterial({
-        //dark red color
-        color: 0x808080,
-        //render both sides of the polygon
-        side: THREE.DoubleSide,
-        // flat shading for a geometric look
-        flatShading: true
-    });
-
+    if (!buildingGenerationEnabled) return; 
     renderedBuildings.forEach((feature) => {
         // calculate the geographical center of the building
         let center = calculatePolygonCenter(feature.geometry.coordinates);
         const id = `${center.longitude},${center.latitude}`;
         // avoid duplidating buildings by checking if they have been generated already
-        if (generatedBuildings.has(id)) {
-            return;
+        if (!generatedBuildings.has(id)) {
+            generatedBuildings.add(id);
+            // scale factor for the building extrusions based on latitude
+            // sourced from https://github.com/jscastro76/threebox/blob/master/examples/18-extrusions.html
+            let s = tb.projectedUnitsPerMeter(center.latitude);
+            // define the material for buildings
+            let buildingMaterial = new THREE.MeshPhongMaterial({
+                color: 0x808080,
+                side: THREE.DoubleSide,
+                flatShading: true
+            });
+            // create extrusions for the building polygons
+            let extrusions = tb.extrusion({
+                // use coordinates from the features exisiting geometry
+                coordinates: feature.geometry.coordinates,
+                geometryOptions: {
+                    // define the number of curve segments
+                    curveSegments: 1,
+                    // disable beveling for a flat appearance
+                    bevelEnabled: false,
+                    // set the depth based on feature height or default to 5m then scale
+                    depth: (feature.properties.height || 5) * s
+                },
+                // assign the prefedined material to the extrusion
+                materials: buildingMaterial
+            });
+            // position the extrusion at the features center
+            extrusions.setCoords([center.longitude, center.latitude, 0]);
+            // add the extrusion to the group of THREE buildings
+            buildingsGroup.add(extrusions);
         }
-        // marks this building as generated to avoid duplication
-        generatedBuildings.add(id);
-        // scale factor for the building extrusions based on latitude
-        // sourced from https://github.com/jscastro76/threebox/blob/master/examples/18-extrusions.html
-        let s = tb.projectedUnitsPerMeter(center.latitude);
-        // create extrusions for the building polygons
-        let extrusions = tb.extrusion({
-            // use coordinates from the features exisiting geometry
-            coordinates: feature.geometry.coordinates,
-            geometryOptions: {
-                // define the number of curve segments
-                curveSegments: 1,
-                // disable beveling for a flat appearance
-                bevelEnabled: false,
-                // set the depth based on feature height or default to 5m then scale
-                depth: (feature.properties.height || 5) * s
-            },
-            // assign the prefedined material to the extrusion
-            materials: buildingMaterial
-        });
-        // position the extrusion at the features center
-        extrusions.setCoords([center.longitude, center.latitude, 0]);
-        // add the extrusion to the group of THREE buildings
-        buildingsGroup.add(extrusions);
     });
     // add the group of buildings to the Threebox Scene
     tb.add(buildingsGroup);
     // log the group of buildings for debugging
     // console.log(buildingsGroup);
     // call the animate function to render the scene
-    animate();
+    requestAnimationFrame(animate);
 }
+
+document.getElementById('toggle-building-generation').addEventListener('click', () => {
+    buildingGenerationEnabled = !buildingGenerationEnabled;
+    const statusText = buildingGenerationEnabled ? 'enabled' : 'disabled';
+    console.log(`Building generation is now ${statusText}.`);
+});
+
 
 document.querySelector('#enemyButton').addEventListener('click', () => {
     generateCubeAndRaycast(copytb);
