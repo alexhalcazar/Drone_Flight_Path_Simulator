@@ -12,26 +12,6 @@ function initializeARMap() {
     });
     map.addControl(new MapboxStyleSwitcherControl());
     map.addControl(new mapboxgl.ScaleControl());
-    map.on('load', function() {
-        fetch('../../geojson/us_military.geojson')
-            .then(response => response.json())
-            .then(data => {
-                map.addSource('us_military', {
-                    type: 'geojson',
-                    data: data
-                });
-                map.addLayer({
-                    id: 'us_military',
-                    type: 'fill',
-                    source: 'us_military',
-                    layout: {},
-                    paint: {
-                        'fill-color': '#ff0000', // Red color fill for airports
-                        'fill-opacity': 0.5
-                    }
-                });
-            });
-    });
 
     map.on('load', function() {
         fetch('../../geojson/airports.geojson')
@@ -47,13 +27,14 @@ function initializeARMap() {
                     source: 'airports',
                     layout: {},
                     paint: {
-                        'fill-color': '#00ff00', // Red color fill for airports
-                        'fill-opacity': 0.5
+                        'fill-color': '#00ff00', 
+                        'fill-opacity': 0.5,
+                        'fill-outline-color': '#000000',
                     }
                 });
             });
     });
-
+    
     map.on('load', function() {
         fetch('../../geojson/us_national_park.geojson')
             .then(response => response.json())
@@ -69,7 +50,30 @@ function initializeARMap() {
                     layout: {},
                     paint: {
                         'fill-color': '#0000ff',
-                        'fill-opacity': 0.5
+                        'fill-opacity': 0.5,
+                        'fill-outline-color': '#000000',
+                    }
+                });
+            });
+    });
+    
+    map.on('load', function() {
+        fetch('../../geojson/us_military.geojson')
+            .then(response => response.json())
+            .then(data => {
+                map.addSource('us_military', {
+                    type: 'geojson',
+                    data: data
+                });
+                map.addLayer({
+                    id: 'us_military',
+                    type: 'fill',
+                    source: 'us_military',
+                    layout: {},
+                    paint: {
+                        'fill-color': '#ff0000',
+                        'fill-opacity': 0.5,
+                        'fill-outline-color': '#000000',
                     }
                 });
             });
