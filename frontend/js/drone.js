@@ -43,7 +43,7 @@ function addDrone(map, tb) {
 // Function gets drone current location while it moves along the flight path
 // Refer to https://github.com/jscastro76/threebox/blob/HEAD/docs/Threebox.md#objectchanged
 function wasPaused(e) {
-    droneCurrentLocation = e.detail.action.position; 
+    droneCurrentLocation = e.detail.action.position;
 }
 
 function droneData(name, noiseLevel, range, endurance, maxAltitude) {

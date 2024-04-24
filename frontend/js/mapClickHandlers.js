@@ -34,6 +34,8 @@ let droneKM;
 let remainingDistanceKM;
 let remainingDistanceMI;
 let numOfPoints = 0;
+const altitudeArray = [];
+const distanceArray = [0];
 const droneDistanceKM = document.getElementById('drone-distance-km');
 const droneDistanceMI = document.getElementById('drone-distance-mi');
 
@@ -163,6 +165,7 @@ function measurePoints(e, map, tb, lng, lat) {
         let userAltitude;
         document.querySelector("#btn-altitude").addEventListener("click", () => {
             userAltitude = document.querySelector("#altitude").value;
+            altitudeArray.push(userAltitude);
             addAltitude(userAltitude);
             calculateDroneRange(numOfPoints, droneKM, droneMI, userAltitude);
         });
@@ -206,19 +209,21 @@ function measurePoints(e, map, tb, lng, lat) {
         function calculateDroneRange (numOfPoints, droneKM, droneMI, altitude) {
             let subtractDistanceKM;
             let subtractDistanceMI;
-            let altitudeKM = altitude * 0.001;
-            let altitudeMI = altitude * 0.000621371;
+            let altitudeChange; // Gets the change in altitude between points to use in calculations
+            let altitudeKM; // Converts altitude from meters to km
+            let altitudeMI; // Converts altitude from meters to miles
             remainingDistanceKM = rangeKM;
             remainingDistanceMI = rangeMI;
             
-            if ( droneSelected == true && numOfPoints == 0) {
-                remainingDistanceKM = rangeKM;
-                remainingDistanceMI = rangeMI;
-            } else if (droneSelected == true && numOfPoints >= 1) {
+            if (droneSelected == true && numOfPoints >= 1) {
+                altitudeChange = altitude - altitudeArray[altitudeArray.length - 2];
+                altitudeKM = altitudeChange * 0.001;
+                altitudeMI = altitudeChange * 0.000621371;
                 subtractDistanceKM = Math.sqrt(Math.pow(droneKM, 2) + Math.pow(altitudeKM, 2));
                 subtractDistanceMI = Math.sqrt(Math.pow(droneMI, 2) + Math.pow(altitudeMI, 2));
                 remainingDistanceKM -= subtractDistanceKM;
                 remainingDistanceMI -= subtractDistanceMI;
+                distanceArray.push(subtractDistanceKM);
             }
 
             let roundedKM = Number(remainingDistanceKM).toFixed(3);
@@ -253,4 +258,4 @@ function handleMapClick(event, map, tb) {
 
 }
 
-export { handleMapClick, droneCoordPath, lng, lat };
+export { handleMapClick, droneCoordPath, lng, lat, distanceArray };

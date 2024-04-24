@@ -1,5 +1,5 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude, droneCurrentLocation } from './drone.js';
-import { handleMapClick, droneCoordPath, lng, lat } from './mapClickHandlers.js';
+import { handleMapClick, droneCoordPath, lng, lat, distanceArray } from './mapClickHandlers.js';
 
 export let cube2;
 export let sphere;
@@ -14,6 +14,10 @@ let maxAltitude = drones[0].maxAltitude;
 rangeKM = drones[0].range;
 rangeMI = rangeKM * 0.62137;
 droneSelected = true;
+let start;
+let end;
+let newPath;
+let totalTime = 0;
 
 document.getElementById("meters").innerHTML = maxAltitude + "  meters";
 document.getElementById("dB").innerHTML = noiseLevel + "  dB";
@@ -50,14 +54,15 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
 
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
     // Data for the path that the drone will follow as well as the duration of the animation
+    start = Date.now();
     const options = {
         path: droneCoordPath,
         duration: 10000
     }
 
     if (wasPaused == true) {
-        let newPath = [droneCurrentLocation, ...droneCoordPath.slice(1)];
         options.path = newPath;
+        wasPaused = false;
     }
 
     // start the drone animation with above options
@@ -67,10 +72,28 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
 });
 
 document.querySelector('#pause').addEventListener('click', (e) => {
+    wasPaused = true;
+    end = Date.now();
+    let timeElasped = end - start;
+    let duration = 10000;
+    totalTime += timeElasped;
+    duration += totalTime;
+    const percent = totalTime / duration;
+    const totalDistance = distanceArray[distanceArray.length-1] * percent;
+    for ( let i = 1; i <= distanceArray.length-1; i++) {
+        console.log("success");
+        console.log("distance array : " + distanceArray[i]);
+        if(totalDistance > distanceArray[i-1] && totalDistance < distanceArray[i]) {
+            console.log("reached");
+            console.log("Count inside loop: ", i)
+            newPath = [droneCurrentLocation, ...droneCoordPath.slice(i)];
+            i =0;
+            break;
+        }
+    }
     drone.stop();
     cube2.stop();
     sphere.stop();
-    wasPaused = true;
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
