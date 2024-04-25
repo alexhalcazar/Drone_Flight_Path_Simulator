@@ -258,4 +258,4 @@ function handleMapClick(event, map, tb) {
 
 }
 
-export { handleMapClick, droneCoordPath, lng, lat, distanceArray };
+export { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM };
