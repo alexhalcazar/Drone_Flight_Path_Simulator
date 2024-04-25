@@ -8,7 +8,7 @@ function initializeARMap() {
         style: 'mapbox://styles/mapbox/outdoors-v12',
         projection: 'equirectangular',
         center: [-118.148451, 34.066285],
-        zoom: 3,
+        zoom: 3.5,
     });
     map.addControl(new MapboxStyleSwitcherControl());
     map.addControl(new mapboxgl.ScaleControl());
@@ -19,12 +19,15 @@ function initializeARMap() {
         window.location.href = 'index.html'
     });
 
-    map.on('load', function() {
+    map.on('style.load', function() {
         addLayers(map);
     });
 
-    map.on('style.load', function() {
+    map.on('load', function() {
         addLayers(map);
+        document.getElementById('noFlyButton').addEventListener('click', function() {
+            toggleLayerVisibility(map);
+        });
     });
 }
 
@@ -47,12 +50,24 @@ function addLayers(map) {
                     source: item,
                     layout: {},
                     paint: {
-                        'fill-color': item === 'airports' ? '#ffff66' : (item === 'us_national_park' ? '#ffb266' : '#ff6666'),
+                        'fill-color': item === 'us_military' ? '#ff4d4d' : (item === 'us_national_park' ? '#85e085' : '#4da6ff' ),
                         'fill-opacity': 0.5,
                         'fill-outline-color': '#000000',
                     }
                 });
             });
+    });
+}
+
+function toggleLayerVisibility(map) {
+    const layers = ['us_military', 'airports', 'us_national_park'];
+    layers.forEach(layerId => {
+        const visibility = map.getLayoutProperty(layerId, 'visibility');
+        if (visibility === 'visible') {
+            map.setLayoutProperty(layerId, 'visibility', 'none');
+        } else {
+            map.setLayoutProperty(layerId, 'visibility', 'visible');
+        }
     });
 }
 

@@ -38,3 +38,19 @@
     background-repeat: no-repeat;
     background-size: 70%;
 }
+
+#noFlyButton {
+    padding: 10px 10px;
+    background-color: #dddddd71; /* Green background */
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 0.85; /* Slightly transparent */
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+#noFlyButton:hover {
+    background-color: #ddd; 
+    opacity: 1; 
+}
