@@ -95,47 +95,46 @@ function calculatePolygonCenter(coordinates) {
 // add buildings as 3D objects to the map when it is loaded or moved
 function queryBuildingFeatures(map, tb) { 
     map.on('load', function () {
-        map.addLayer({
-            // unique identifier for the layer
+        if(buildingGenerationEnabled)
+        {map.addLayer({
             id: 'buildings',
-            // custom layer using Threebox
             type: 'custom',
-            // render in 3D mode
             renderingMode: '3d',
             onAdd: function (map, gl) {
-                // query map features that are buildings
                 const renderedBuildings = map.queryRenderedFeatures({
                     layers: ['building']
                 });
-                // add buildings to Threebox
                 addRenderedBuildings(renderedBuildings, tb);
-                // generate a cube for raycasting demo
-                generateDroneCube(tb);
-                
-                // generateCubeAndRaycast(tb, map);
             },
             render: function (gl, matrix) {
-                // updates Threebox scene
-                tb.update();
+                animate();
             }
         });
+        }
     });
     // requery features when the map is moved and adding buildings to the map
     map.on('moveend', function () {
-        const newRenderedBuildings = map.queryRenderedFeatures({layers: ['building']});
-        // Filter out buildings already processed
-        const filteredBuildings = newRenderedBuildings.filter(feature => {
-            let center = calculatePolygonCenter(feature.geometry.coordinates);
-            const id = `${center.longitude},${center.latitude}`;
-            return !generatedBuildings.has(id);
-        });
+        if (buildingGenerationEnabled) {
+            const newRenderedBuildings = map.queryRenderedFeatures({layers: ['building']});
+            // Filter out buildings already processed
+            const filteredBuildings = newRenderedBuildings.filter(feature => {
+                let center = calculatePolygonCenter(feature.geometry.coordinates);
+                const id = `${center.longitude},${center.latitude}`;
+                return !generatedBuildings.has(id);
+            });
 
-        if (filteredBuildings.length > 0) {
-            addRenderedBuildings(filteredBuildings, tb);
+            if (filteredBuildings.length > 0) {
+                addRenderedBuildings(filteredBuildings, tb);
+            }
         }
     });
-
 }
+
+document.getElementById('toggle-building-generation').addEventListener('click', () => {
+    buildingGenerationEnabled = !buildingGenerationEnabled;
+    const statusText = buildingGenerationEnabled ? 'enabled' : 'disabled';
+    console.log(`Building generation is now ${statusText}.`);
+});
 
 // add rendered buildings to the Threebox scene
 function addRenderedBuildings(renderedBuildings) {
@@ -179,22 +178,8 @@ function addRenderedBuildings(renderedBuildings) {
     });
     // add the group of buildings to the Threebox Scene
     tb.add(buildingsGroup);
-    // log the group of buildings for debugging
-    // console.log(buildingsGroup);
-    // call the animate function to render the scene
-    requestAnimationFrame(animate);
+    animate();
 }
-
-document.getElementById('toggle-building-generation').addEventListener('click', () => {
-    buildingGenerationEnabled = !buildingGenerationEnabled;
-    const statusText = buildingGenerationEnabled ? 'enabled' : 'disabled';
-    console.log(`Building generation is now ${statusText}.`);
-});
-
-
-document.querySelector('#enemyButton').addEventListener('click', () => {
-    generateCubeAndRaycast(copytb);
-});
 
 function generateDroneCube(tb){
     copytb=tb;
@@ -488,6 +473,7 @@ function initializeThreeJS(map) {
     // add drone to map
     addDrone(map, tb);
     pointsLayer(map);
+    generateDroneCube(tb);
     map.on('click', (e) => {
         handleMapClick(e, map, tb);
     });
