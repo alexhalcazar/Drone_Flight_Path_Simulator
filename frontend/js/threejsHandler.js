@@ -1,5 +1,5 @@
 import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude, droneCurrentLocation } from './drone.js';
-import { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM } from './mapClickHandlers.js';
+import { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM, detectionInfo } from './mapClickHandlers.js';
 
 export let cube2;
 export let sphere;
@@ -22,8 +22,14 @@ document.getElementById("min").innerHTML = endurance + "  min";
 
 // Variables used for drone pausing
 let newPath;
-let wasPaused = false;
 let totalDistance;
+let wasPaused;
+let animationFinished;
+
+// Variables for detectionInfo popup
+export let timesHeard = 0;
+export let timesSeen = 0;
+export let missionSuccess = 100;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -51,10 +57,14 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
 });
 
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
+    // animationFinished set to false and function called to remove popup if the animation is being replayed
+    animationFinished = false;
+    detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
+
     // Data for the path that the drone will follow as well as the duration of the animation
     const options = {
         path: droneCoordPath,
-        duration: 10000
+        duration: 3000,
     }
 
     if (wasPaused == true) {
@@ -63,10 +73,17 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         if (droneKM - totalDistance < 0.1)
             options.duration = 2000;
         wasPaused = false;
+        detectionInfo([droneCurrentLocation[0], droneCurrentLocation[1]], wasPaused);
     }
 
     // start the drone animation with above options
-    drone.followPath(options);
+    drone.followPath(
+        options, 
+        function() {
+            animationFinished = true;
+            detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
+        }
+    );
     cube2.followPath(options);
     sphere.followPath(options);
 });
@@ -82,6 +99,11 @@ document.querySelector('#pause').addEventListener('click', (e) => {
             break;
         }
     }
+    
+    if (wasPaused == true) {
+        detectionInfo([droneCurrentLocation[0], droneCurrentLocation[1]], wasPaused);
+    }
+
     drone.stop();
     cube2.stop();
     sphere.stop();
@@ -93,7 +115,7 @@ document.querySelector('#btn-reset-drone').addEventListener('click', () => {
 
 });
 
-// // Gets distance traveled by the drone so far so we know where to have it continue after being paused
+// Gets distance traveled by the drone so far so we know where to have it continue after being paused
 function distanceTraveled(lat1, lon1, lat2, lon2) {
     // Array of coordinates representing the object's path
     const pathCoordinates = [[lat1, lon1], [lat2, lon2]];
@@ -334,6 +356,8 @@ function generateCubeAndRaycast(tb, map) {
 
         if(spherebound.intersectsBox(cube1bb)){
             noFlyZoneCube.userData.obj.material.color.set(0x000000);
+            timesSeen++;
+            missionSuccess -= 10;
         } else {
             noFlyZoneCube.userData.obj.material.color.set(0x00FF00);
         }

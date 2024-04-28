@@ -26,7 +26,7 @@ function addDrone(map, tb) {
 
                 tb.loadObj(options, (model) => {
                     model.setCoords(droneCoordinates);
-                    model.addEventListener('ObjectChanged', wasPaused, false);
+                    model.addEventListener('ObjectChanged', animationStopped, false);
                     model.setRotation({ x: 0, y: 0, z: -20 });
                     tb.add(model);
                     drone = model;
@@ -42,7 +42,7 @@ function addDrone(map, tb) {
 
 // Function gets drone current location while it moves along the flight path
 // Refer to https://github.com/jscastro76/threebox/blob/HEAD/docs/Threebox.md#objectchanged
-function wasPaused(e) {
+function animationStopped(e) {
     droneCurrentLocation = e.detail.action.position;
 }
 

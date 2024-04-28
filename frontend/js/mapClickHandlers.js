@@ -1,4 +1,6 @@
-import { rangeKM, rangeMI, droneSelected } from './threejsHandler.js';
+import { rangeKM, rangeMI, droneSelected, timesSeen, timesHeard, missionSuccess } from './threejsHandler.js';
+import { droneCurrentLocation } from './drone.js';
+
 
 const droneCoordPath = [];
 
@@ -38,6 +40,7 @@ const altitudeArray = [];
 const distanceArray = [0];
 const droneDistanceKM = document.getElementById('drone-distance-km');
 const droneDistanceMI = document.getElementById('drone-distance-mi');
+let detectionInfo;
 
 document.querySelector('#btn-ruler-on').addEventListener('click', () => {
     ruler = true;
@@ -234,6 +237,25 @@ function measurePoints(e, map, tb, lng, lat) {
             droneDistanceMI.textContent = `${roundedMI} mi`;
         }
 
+        // Displays a popup with detection info everytime the drone is stopped
+        detectionInfo = function(location, stopped) {
+            if (stopped == true) {
+                popup = new mapboxgl.Popup({ offset: 0 })
+                .setLngLat([droneCurrentLocation[0], droneCurrentLocation[1]])
+                .setHTML(`
+                <div height="100">
+                <h2>Detection Info</h2>
+                <p>Times Seen: <span id="seen">${timesSeen}</span></p>
+                <p>Times Heard: <span id="heard">${timesHeard}</span></p>
+                <p>Mission Success Rate: <span id="mission">${missionSuccess}</span>%</p> 
+                </div>
+                `)
+                .addTo(map);
+            } else if (stopped == false) {
+                popup.remove();
+            }
+        }
+
         // If a point is removed, remove the popup as well
         if (features.length) {
             const id = popup;
@@ -258,4 +280,4 @@ function handleMapClick(event, map, tb) {
 
 }
 
-export { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM };
+export { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM, detectionInfo };
