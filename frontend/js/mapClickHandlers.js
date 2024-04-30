@@ -6,7 +6,8 @@ const droneCoordPath = [];
 
 let lng;
 let lat;
-let ruler;
+let ruler = false;
+let sidebar = false;
 
 // GeoJSON object to hold our measurement features
 const geojson = {
@@ -42,17 +43,42 @@ const droneDistanceKM = document.getElementById('drone-distance-km');
 const droneDistanceMI = document.getElementById('drone-distance-mi');
 let detectionInfo;
 
-document.querySelector('#btn-ruler-on').addEventListener('click', () => {
-    ruler = true;
+document.querySelector('#btn-ruler-on').addEventListener('click', (e) => {
     let outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = 'Ruler On';
+
+    if(ruler === false){
+        ruler = true;
+        let outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = 'Ruler On';
+        // innerHTML = 'Ruler Off';
+        return e.target.innerHTML= 'Ruler Off';
+    }
+    else{
+        ruler = false;
+        let outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = 'Ruler Off';
+        // this.innerHTML = 'Ruler On';
+        return e.target.innerHTML = 'Ruler On';
+    }
+
 });
 
-document.querySelector('#btn-ruler-off').addEventListener('click', () => {
-    ruler = false;
-    let outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = 'Ruler Off';
+document.querySelector('#sidebar-btn').addEventListener('click', (e) => {
+    if(sidebar === false){
+        sidebar = true;
+        document.getElementById("mySidebar").style.width = "310px";
+        document.getElementById("main").style.marginLeft = "320px";
+        return e.target.innerHTML = 'Close';
+    }
+    else{
+        sidebar = false;
+        document.getElementById("mySidebar").style.width = "0px";
+        document.getElementById("mySidebar").style.padding = "0px";
+        document.getElementById("main").style.marginLeft = "0px";
+        return e.target.innerHTML = 'Open';
+    }
 });
+
 
 async function getElevation() {
     // Construct the API request.
