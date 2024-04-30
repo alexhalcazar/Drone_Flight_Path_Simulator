@@ -103,6 +103,23 @@ async function getElevation() {
     eleDisplay.textContent = `${highestElevation} meters`;
 }
 
+async function getWind(lng, lat) {
+    try {
+
+        const response = await fetch(`http://localhost:3000/api/weather?longitude=${lng}&latitude=${lat}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        }
+
+        const data = await response.json();
+        // Handle the API response data here
+        const windDisplay = document.getElementById('wind');
+        windDisplay.textContent = data.windSpeed;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
 // Adds points to the map for the drone route when a user clicks 
 function measurePoints(e, map, tb, lng, lat) {
     let popup;
@@ -303,6 +320,7 @@ function handleMapClick(event, map, tb) {
     lat = event.lngLat.lat;
     getElevation();
     measurePoints(event, map, tb, lng, lat);
+    getWind(lng, lat)
 
 }
 
