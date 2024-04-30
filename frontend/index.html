@@ -14,8 +14,6 @@
 </head>
 <body>
     <div id="mySidebar" class="sidebar">
-        <!-- Button to close the sidebar -->
-        <div><button class="closebtn" onclick="closeNav()">Close</button> </div>
         <!-- Screen that displays maps output from the drone -->
         <div id="output">Awaiting output...</div>
         <div class="elevation-info">
@@ -32,18 +30,12 @@
         </div>
         <div class="ui-grid-b">
             <div class="ui-block-a"><button id="btn-ruler-on" class="ui-block-a-btn">Ruler On</button></div>
-            <div class="ui-block-a"><button id="btn-ruler-off" class="ui-block-a-btn">Ruler Off</button></div>
             <div class="ui-block-a"><button id="btn-move-drone" class="ui-block-a-btn">Move</button></div>
-            <div class="ui-block-a"><button id="btn-reset-drone" class="ui-block-a-btn">Reset</button></div>
-            <div class="ui-block-a"><button id="btn-spin" class="ui-block-a-btn">Pause rotation</button></div>
-            <div class="ui-block-a"><button id="enemyButton" class="ui-block-a-btn">Add Enemy</button></div>
+            <div class="ui-block-a"><button id="btn-reset-drone" class="ui-block-a-btn">Reset</button></div>  
+            <div class="ui-block-a"><button id="add-detector" class="ui-block-a-btn">Add detector</button></div>
+	    <div class="ui-block-a"><button id="add-no-fly-zone" class="ui-block-a-btn">Add No-Fly Zone</button></div>
         </div>
         <div class="ui-grid-b">
-            <div class="ui-block-a"><button id="weather" class="ui-block-a-btn">Wind</button></div>
-            <div class="ui-block-a"><button id="toggleRadar" class="ui-block-a-btn">Toggle Radar Layer</button></div>
-            <div class="ui-block-a"><button id="btn-animate" class="ui-block-a-btn">Play</button></div>
-	    <div class="ui-block-a"><button id="add-detector" class="ui-block-a-btn">Add detector</button></div>
-	    <div class="ui-block-a"><button id="add-no-fly-zone" class="ui-block-a-btn">Add No-Fly Zone</button></div>
         </div>
 	<div class="elevation-info">
             <div>Drone Status: <span id="droneDetected">[Place holder]</span></div>
@@ -83,21 +75,10 @@
     </div>
     <div id="main">
         <!-- Button to open the side bar-->
-        <button class="openbtn" onclick="openNav()">Open Sidebar</button>
+        <button class="openbtn" id="sidebar-btn">Open</button>
         <!--Screen that displays the map-->		
         <div id="map"></div>
     </div>
-    <script>
-        function openNav() {
-            document.getElementById("mySidebar").style.width = "310px";
-            document.getElementById("main").style.marginLeft = "320px";
-        }
-        function closeNav() {
-            document.getElementById("mySidebar").style.width = "0px";
-            document.getElementById("mySidebar").style.padding = "0px";
-            document.getElementById("main").style.marginLeft = "0px";
-        }
-    </script>
     <script type="module" src="./js/drone.js"></script>
     <script type="module" src="./js/mapClickHandlers.js"></script>
     <script type="module" src="./js/weatherHandlers.js"></script>
