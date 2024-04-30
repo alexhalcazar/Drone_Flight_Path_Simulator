@@ -76,11 +76,6 @@ document.querySelector('#sidebar-btn').addEventListener('click', (e) => {
     }
 });
 
-// document.querySelector('#btn-ruler-off').addEventListener('click', () => {
-//     ruler = false;
-//     let outputDiv = document.getElementById('output');
-//     outputDiv.innerHTML = 'Ruler Off';
-// });
 
 async function getElevation() {
     // Construct the API request.
