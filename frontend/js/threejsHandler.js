@@ -1,6 +1,5 @@
-import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude } from './drone.js';
-import { handleMapClick, droneCoordPath, lng, lat } from './mapClickHandlers.js';
-
+import { drone, drones, addDrone, droneCoordinates, startLongitude, startLatitude, startAltitude, droneCurrentLocation } from './drone.js';
+import { handleMapClick, droneCoordPath, lng, lat, distanceArray, droneKM, detectionInfo } from './mapClickHandlers.js';
 export let cube2;
 export let sphere;
 export let rangeKM;
@@ -14,6 +13,30 @@ const enemyObjects = [];
 let intersects;
 let enemies = false;
 let buildingGenerationEnabled = true;
+
+// Default values set for the drone list
+let noiseLevel = drones[0].noiseLevel;
+let endurance = drones[0].endurance;
+let maxAltitude = drones[0].maxAltitude;
+rangeKM = drones[0].range;
+rangeMI = rangeKM * 0.62137;
+droneSelected = true;
+
+document.getElementById("meters").innerHTML = maxAltitude + "  meters";
+document.getElementById("dB").innerHTML = noiseLevel + "  dB";
+document.getElementById("km").innerHTML = rangeKM + "  km";
+document.getElementById("min").innerHTML = endurance + "  min";
+
+// Variables used for drone pausing
+let newPath;
+let totalDistance;
+let wasPaused;
+let animationFinished;
+
+// Variables for detectionInfo popup
+export let timesHeard = 0;
+export let timesSeen = 0;
+export let missionSuccess = 100;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -31,7 +54,7 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
              maxAltitude = drones[i].maxAltitude;
              rangeMI = rangeKM * 0.62137;
              droneSelected = true;
-        }
+        } 
     }
 
     document.getElementById("meters").innerHTML = maxAltitude + "  meters";
@@ -41,15 +64,56 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
 });
 
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
+    // animationFinished set to false and function called to remove popup if the animation is being replayed
+    animationFinished = false;
+    detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
+
     // Data for the path that the drone will follow as well as the duration of the animation
     const options = {
         path: droneCoordPath,
-        duration: 10000
+        duration: 3000,
     }
-    // start the drone animation with above options, and remove the line when animation ends
-    drone.followPath(options);
+
+    if (wasPaused == true) {
+        options.path = newPath;
+        // if the remaining distance to fly is small shorten the duration of the animation
+        if (droneKM - totalDistance < 0.1)
+            options.duration = 2000;
+        wasPaused = false;
+        detectionInfo([droneCurrentLocation[0], droneCurrentLocation[1]], wasPaused);
+    }
+
+    // start the drone animation with above options
+    drone.followPath(
+        options, 
+        function() {
+            animationFinished = true;
+            detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
+        }
+    );
     cube2.followPath(options);
     sphere.followPath(options);
+});
+
+document.querySelector('#pause').addEventListener('click', (e) => {
+    wasPaused = true;
+    totalDistance = distanceTraveled(droneCoordPath[0][0], droneCoordPath[0][1],
+         droneCurrentLocation[0], droneCurrentLocation[1]);
+
+    for ( let i = 1; i <= distanceArray.length-1; i++) {
+        if(totalDistance > distanceArray[i-1] && totalDistance < distanceArray[i]) {
+            newPath = [droneCurrentLocation, ...droneCoordPath.slice(i)];
+            break;
+        }
+    }
+    
+    if (wasPaused == true) {
+        detectionInfo([droneCurrentLocation[0], droneCurrentLocation[1]], wasPaused);
+    }
+
+    drone.stop();
+    cube2.stop();
+    sphere.stop();
 });
 
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
@@ -57,6 +121,19 @@ document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
 
 });
+
+// Gets distance traveled by the drone so far so we know where to have it continue after being paused
+function distanceTraveled(lat1, lon1, lat2, lon2) {
+    // Array of coordinates representing the object's path
+    const pathCoordinates = [[lat1, lon1], [lat2, lon2]];
+    
+    // Create a LineString geometry from the path coordinates
+    const pathLineString = turf.lineString(pathCoordinates);
+
+    // Calculate the length of the LineString, which represents the distance traveled
+    const distance = turf.length(pathLineString, {units: 'kilometers'});
+    return distance;
+}
 
 // create a group to hold all building objects
 const buildingsGroup = new THREE.Group();
@@ -265,6 +342,12 @@ function animateEndPoint(){
     ObjectPointBB.copy(ObjectPoint.userData.obj.geometry.boundingBox).applyMatrix4(ObjectPoint.userData.obj.matrixWorld);
     
     spherebound.copy(sphere.userData.obj.geometry.boundingSphere).applyMatrix4(sphere.userData.obj.matrixWorld);
+
+
+        if(spherebound.intersectsBox(cube1bb)){
+            noFlyZoneCube.userData.obj.material.color.set(0x000000);
+            timesSeen++;
+            missionSuccess -= 10;
 
     if(spherebound.intersectsBox(ObjectPointBB)){
         ObjectPoint.userData.obj.material.color.set(0x000000);

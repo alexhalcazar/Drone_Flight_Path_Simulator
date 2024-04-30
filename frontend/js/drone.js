@@ -4,6 +4,7 @@ let startAltitude = 9;
 let drone;
 let droneCoordinates = [startLongitude, startLatitude, startAltitude];
 const drones = [];
+let droneCurrentLocation;
 
 function addDrone(map, tb) {
     map.on('load', function() {
@@ -25,6 +26,7 @@ function addDrone(map, tb) {
 
                 tb.loadObj(options, (model) => {
                     model.setCoords(droneCoordinates);
+                    model.addEventListener('ObjectChanged', animationStopped, false);
                     model.setRotation({ x: 0, y: 0, z: -20 });
                     tb.add(model);
                     drone = model;
@@ -36,6 +38,12 @@ function addDrone(map, tb) {
             }
         });
     });
+}
+
+// Function gets drone current location while it moves along the flight path
+// Refer to https://github.com/jscastro76/threebox/blob/HEAD/docs/Threebox.md#objectchanged
+function animationStopped(e) {
+    droneCurrentLocation = e.detail.action.position;
 }
 
 function droneData(name, noiseLevel, range, endurance, maxAltitude) {
@@ -58,4 +66,4 @@ const wasp = new droneData("RQ-12A Wasp III", 70, 5, 45, 300);
 
 drones.push(raven, shadow, puma, wasp);
 
-export { drone, drones, droneCoordinates, addDrone, startLongitude, startLatitude, startAltitude};
+export { drone, drones, droneCoordinates, addDrone, startLongitude, startLatitude, startAltitude, droneCurrentLocation };
