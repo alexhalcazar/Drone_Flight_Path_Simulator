@@ -40,6 +40,12 @@ button {
     word-wrap: normal; 
 }
 
+button.mapboxgl-popup-close-button{
+    color:#000;
+    background-color: red;
+    padding: 5px 10px;
+}
+
 .ui-block-a {
 	margin: 5px;
 }
