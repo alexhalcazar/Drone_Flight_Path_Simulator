@@ -39,9 +39,7 @@ const droneDistanceKM = document.getElementById('drone-distance-km');
 const droneDistanceMI = document.getElementById('drone-distance-mi');
 
 document.querySelector('#btn-ruler-on').addEventListener('click', (e) => {
-    // ruler = true;
     let outputDiv = document.getElementById('output');
-    // outputDiv.innerHTML = 'Ruler On';
 
     if(ruler === false){
         ruler = true;
