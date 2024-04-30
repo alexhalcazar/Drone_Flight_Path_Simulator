@@ -119,7 +119,7 @@ document.querySelector('#pause').addEventListener('click', (e) => {
 document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     drone.setCoords([startLongitude, startLatitude, startAltitude]);
     cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
-
+    sphere.setCoords([startLongitude, startLatitude, startAltitude-2])
 });
 
 // Gets distance traveled by the drone so far so we know where to have it continue after being paused
@@ -344,11 +344,11 @@ function animateEndPoint(){
     spherebound.copy(sphere.userData.obj.geometry.boundingSphere).applyMatrix4(sphere.userData.obj.matrixWorld);
 
 
-        if(spherebound.intersectsBox(cube1bb)){
-            noFlyZoneCube.userData.obj.material.color.set(0x000000);
-            timesSeen++;
-            missionSuccess -= 10;
-
+    // if(spherebound.intersectsBox(cube1bb)){
+    //         noFlyZoneCube.userData.obj.material.color.set(0x000000);
+    //         timesSeen++;
+    //         missionSuccess -= 10;
+    // }
     if(spherebound.intersectsBox(ObjectPointBB)){
         ObjectPoint.userData.obj.material.color.set(0x000000);
     } else {
@@ -384,6 +384,11 @@ function animateEndPoint(){
     requestAnimationFrame(animateEndPoint);
     
 }
+
+document.querySelector('#add-detector').addEventListener('click', () => {
+    generateCubeAndRaycast(copytb);
+});
+
 // function to generate a cube and perform raycast to detect interesctions with buildings
 function generateCubeAndRaycast(tb) {
 
