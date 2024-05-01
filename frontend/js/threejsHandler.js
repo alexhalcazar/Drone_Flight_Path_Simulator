@@ -32,6 +32,9 @@ let newPath;
 let totalDistance;
 let wasPaused;
 let animationFinished;
+let lastPointPassed;
+let timesStopped = 0;
+let pointsPassed = 0;
 
 // Variables for detectionInfo popup
 export let timesHeard = 0;
@@ -66,12 +69,13 @@ document.querySelector('#drones-drop-down').addEventListener('change', () => {
 document.querySelector('#btn-move-drone').addEventListener('click', () => {
     // animationFinished set to false and function called to remove popup if the animation is being replayed
     animationFinished = false;
+    
     detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
 
     // Data for the path that the drone will follow as well as the duration of the animation
     const options = {
         path: droneCoordPath,
-        duration: 3000,
+        duration: 10000,
     }
 
     if (wasPaused == true) {
@@ -89,22 +93,37 @@ document.querySelector('#btn-move-drone').addEventListener('click', () => {
         function() {
             animationFinished = true;
             detectionInfo(droneCoordPath[droneCoordPath.length-1], animationFinished);
+            pointsPassed = 0;
+            lastPointPassed = [droneCoordPath[0][0], droneCoordPath[0][1]]; 
         }
     );
     cube2.followPath(options);
     sphere.followPath(options);
 });
 
+window.addEventListener("error", (event) => {
+    window.alert("Please create a path first");
+});
+
 document.querySelector('#pause').addEventListener('click', (e) => {
     wasPaused = true;
-    totalDistance = distanceTraveled(droneCoordPath[0][0], droneCoordPath[0][1],
-         droneCurrentLocation[0], droneCurrentLocation[1]);
+    timesStopped++;
 
-    for ( let i = 1; i <= distanceArray.length-1; i++) {
-        if(totalDistance > distanceArray[i-1] && totalDistance < distanceArray[i]) {
-            newPath = [droneCurrentLocation, ...droneCoordPath.slice(i)];
+    if (timesStopped <= 1) {
+        totalDistance = distanceTraveled(droneCoordPath[0][0], droneCoordPath[0][1],
+            droneCurrentLocation[0], droneCurrentLocation[1]);
+    } else if (timesStopped > 1) {
+        totalDistance = distanceTraveled(lastPointPassed[0], lastPointPassed[1],
+            droneCurrentLocation[0], droneCurrentLocation[1]) + distanceArray[pointsPassed];
+    }
+  
+    for ( let i = 0; i <= distanceArray.length-2; i++) {
+        if(totalDistance > distanceArray[i] && totalDistance < distanceArray[i+1]) {
+            newPath = [droneCurrentLocation, ...droneCoordPath.slice(i+1)];
+            lastPointPassed = [droneCoordPath[i][0], droneCoordPath[i][1]];
+            pointsPassed = i;
             break;
-        }
+        } 
     }
     
     if (wasPaused == true) {
@@ -346,8 +365,8 @@ function animateEndPoint(){
 
     // if(spherebound.intersectsBox(cube1bb)){
     //         noFlyZoneCube.userData.obj.material.color.set(0x000000);
-    //         timesSeen++;
-    //         missionSuccess -= 10;
+            // timesSeen++;
+            // missionSuccess -= 10;
     // }
     if(spherebound.intersectsBox(ObjectPointBB)){
         ObjectPoint.userData.obj.material.color.set(0x000000);
