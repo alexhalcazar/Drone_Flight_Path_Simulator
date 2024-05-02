@@ -369,13 +369,8 @@ function animateEndPoint(){
         if(spherebound.intersectsSphere(object.Espherebound)){
             object.Esphere.userData.obj.material.color.set(0xFF0000 );
             object.Esphere.userData.obj.material.opacity=1.0;
-
-           
             timesHeard++;
             missionSuccess -= .5;
-                
-            
-            
         } else {
             object.Esphere.userData.obj.material.color.set(0xFFFF00);
             object.Esphere.userData.obj.material.opacity=.15;
