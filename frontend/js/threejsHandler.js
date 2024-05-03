@@ -7,7 +7,7 @@ export let rangeMI;
 export let droneSelected;
 let copytb;
 
-let ObjectPointBB, ObjectPoint, spherebound;
+let ObjectPointBB, ObjectPoint, spherebound,cubeBB;
 const enemyObjects = [];
 
 let intersects;
@@ -40,6 +40,9 @@ let pointsPassed = 0;
 export let timesHeard = 0;
 export let timesSeen = 0;
 export let missionSuccess = 100;
+
+let visualBoolean=false;
+let audioBoolean=false;
 
 document.querySelector('#drones-drop-down').addEventListener('change', () => {
     const dropdown = document.getElementById("drones-drop-down");
@@ -139,6 +142,10 @@ document.querySelector('#btn-reset-drone').addEventListener('click', () => {
     drone.setCoords([startLongitude, startLatitude, startAltitude]);
     cube2.setCoords([startLongitude, startLatitude, startAltitude-2])
     sphere.setCoords([startLongitude, startLatitude, startAltitude-2])
+    timesHeard = 0;
+    timesSeen = 0;
+    missionSuccess = 100;
+
 });
 
 // Gets distance traveled by the drone so far so we know where to have it continue after being paused
@@ -268,6 +275,7 @@ function addRenderedBuildings(renderedBuildings) {
             });
             // position the extrusion at the features center
             extrusions.setCoords([center.longitude, center.latitude, 0]);
+           
             // add the extrusion to the group of THREE buildings
             buildingsGroup.add(extrusions);
         }
@@ -301,6 +309,10 @@ function generateDroneCube(tb){
         .Object3D({ obj: cube2, units: 'meters', bbox: false })
         .setCoords(droneOrigin);
     // add the cube to the Threebox scene.
+
+    cubeBB=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
+    cubeBB.setFromObject(cube2);
+
     tb.add(cube2);
 
     //sphere coordinates
@@ -333,10 +345,10 @@ function generateDroneCube(tb){
     // allows the sphere to raycast
     spherebound=new THREE.Sphere(sphere.position.clone(),10);
     tb.add(sphere);
-    createObjectPoint(tb, sphere, spherebound);
+    createObjectPoint(tb);
 }
 
-function createObjectPoint(tb,sphere,spherebound){
+function createObjectPoint(tb){
     
     const geometryObjectPoint = new THREE.BoxGeometry(150, 350, 50);
     const materialObjectPoint = new THREE.MeshPhongMaterial({
@@ -362,12 +374,6 @@ function animateEndPoint(){
     
     spherebound.copy(sphere.userData.obj.geometry.boundingSphere).applyMatrix4(sphere.userData.obj.matrixWorld);
 
-
-    // if(spherebound.intersectsBox(cube1bb)){
-    //         noFlyZoneCube.userData.obj.material.color.set(0x000000);
-            // timesSeen++;
-            // missionSuccess -= 10;
-    // }
     if(spherebound.intersectsBox(ObjectPointBB)){
         ObjectPoint.userData.obj.material.color.set(0x000000);
     } else {
@@ -381,24 +387,30 @@ function animateEndPoint(){
         if(spherebound.intersectsSphere(object.Espherebound)){
             object.Esphere.userData.obj.material.color.set(0xFF0000 );
             object.Esphere.userData.obj.material.opacity=1.0;
+            timesHeard++;
+            missionSuccess -= .5;
         } else {
             object.Esphere.userData.obj.material.color.set(0xFFFF00);
             object.Esphere.userData.obj.material.opacity=.15;
+            audioBoolean=false;
             
         }
-        
+        //visual intersection
+        object.enemyBoxBB.copy(object.enemyBox.userData.obj.geometry.boundingBox).applyMatrix4(object.enemyBox.userData.obj.matrixWorld);
+        cubeBB.copy(cube2.userData.obj.geometry.boundingBox).applyMatrix4(cube2.userData.obj.matrixWorld);
+
+        if(cubeBB.intersectsBox(object.enemyBoxBB)){
+            object.enemyBox.userData.obj.material.color.set(0xFF0000 );
+            object.enemyBox.userData.obj.material.opacity=.15;
+            
+            timesSeen++;
+            missionSuccess -= 1.0;
+        } else {
+            object.enemyBox.userData.obj.material.color.set(0xFFFF00);
+            object.enemyBox.userData.obj.material.opacity=.50;
+
+        }
     });
-    // if(enemies){
-
-        
-    //     if (intersects.length > 0 ) {
-    //         console.log(intersects.length);
-    //         // if intersect is detected, chnge the color of the intersected objects to blue
-    //         intersects[0].object.material.color.set(0x000099);    
-
-    //     }
-
-    // }
     
     requestAnimationFrame(animateEndPoint);
     
@@ -468,8 +480,29 @@ function generateCubeAndRaycast(tb) {
     let Espherebound=new THREE.Sphere(Esphere.position.clone(),height-7);
 
     tb.add(Esphere);
+
     enemyData['Esphere']=Esphere;
     enemyData['Espherebound']=Espherebound;
+
+    const geometryEnemyBox = new THREE.BoxGeometry(1, 150, 1);
+    const materialEnemyBox = new THREE.MeshPhongMaterial({
+        color: 0xFFFF00,
+        side: THREE.DoubleSide,
+        transparent: true, opacity: 1 ,depthTest: false
+    });
+
+    let enemyBox = new THREE.Mesh(geometryEnemyBox, materialEnemyBox);
+    let EBoxOrigin = [longitude ,latitude+.00001, height+2];
+    enemyBox = tb
+        .Object3D({ obj:enemyBox, units: 'meters', bbox: false })
+        .setCoords(EBoxOrigin);
+    let enemyBoxBB=new THREE.Box3(new THREE.Vector3(),new THREE.Vector3());
+    enemyBoxBB.setFromObject(enemyBox);
+    tb.add(enemyBox);
+
+    enemyData['enemyBoxBB']=enemyBoxBB;
+    enemyData['enemyBox']=enemyBox;
+
     enemyObjects.push(enemyData);
 
     //animateing and constantly checking if obj intersectss
@@ -499,7 +532,7 @@ function generateCubeAndRaycast(tb) {
     line = tb
         .Object3D({ obj: line, units: 'meters', bbox: false })
         .setCoords(cubeOrigin);
-    tb.add(line);
+    //tb.add(line);
 
     // use raycaster to detect intersections with children of the buildingsGroup object
     // true parameter indicates the method should check all descendants, not just direct children.
