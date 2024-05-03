@@ -46,6 +46,13 @@ button.mapboxgl-popup-close-button{
     padding: 5px 10px;
 }
 
+button#toggle-building-generation{
+    /* text-align: left; */
+    /* width: fit-content; */
+    font-size: small;
+    padding-left: 15px;
+}
+
 .ui-block-a {
 	margin: 5px;
 }
