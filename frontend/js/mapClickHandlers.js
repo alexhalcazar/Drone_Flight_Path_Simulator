@@ -49,16 +49,16 @@ document.querySelector('#btn-ruler-on').addEventListener('click', (e) => {
     if(ruler === false){
         ruler = true;
         let outputDiv = document.getElementById('output');
-        outputDiv.innerHTML = 'Ruler On';
+        outputDiv.innerHTML = 'Currently Plotting';
         // innerHTML = 'Ruler Off';
-        return e.target.innerHTML= 'Ruler Off';
+        return e.target.innerHTML= 'Stop Plotting';
     }
     else{
         ruler = false;
         let outputDiv = document.getElementById('output');
-        outputDiv.innerHTML = 'Ruler Off';
+        outputDiv.innerHTML = 'Plotting Paused';
         // this.innerHTML = 'Ruler On';
-        return e.target.innerHTML = 'Ruler On';
+        return e.target.innerHTML = 'Plot Points';
     }
 
 });
