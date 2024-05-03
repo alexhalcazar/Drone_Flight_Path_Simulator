@@ -289,7 +289,7 @@ function measurePoints(e, map, tb, lng, lat) {
                 <div height="100">
                 <h2>Detection Info</h2>
                 <p>Times Seen: <span id="seen">${timesSeen}</span></p>
-                <p>Times Heard: <span id="heard">${timesHeard}</span></p>
+                <p>Times Heard: <span id="heard">${timesHeard.length}</span></p>
                 <p>Mission Success Rate: <span id="mission">${missionSuccess}</span>%</p> 
                 </div>
                 `)

@@ -34,7 +34,7 @@ let wasPaused;
 let animationFinished;
 
 // Variables for detectionInfo popup
-export let timesHeard = 0;
+export let timesHeard = [];
 export let timesSeen = 0;
 export let missionSuccess = 100;
 
@@ -251,6 +251,8 @@ function addRenderedBuildings(renderedBuildings) {
             extrusions.setCoords([center.longitude, center.latitude, 0]);
             // add the extrusion to the group of THREE buildings
             buildingsGroup.add(extrusions);
+            let bbox = new THREE.Box3().setFromObject(extrusions);
+            extrusions.userData.boundingBox = bbox;
         }
     });
     // add the group of buildings to the Threebox Scene
@@ -354,7 +356,17 @@ function animateEndPoint(){
     } else {
         ObjectPoint.userData.obj.material.color.set(0x00FF00);
     }
-    
+
+    buildingsGroup.children.forEach((building) => {
+        if (spherebound.intersectsBox(building.userData.boundingBox)) {
+            console.log('Collision detected with building at:', building.userData.boundingBox.getCenter(new THREE.Vector3()));
+
+            if(!timesHeard.includes(building.uuid)) {
+                timesHeard.push(building.uuid);
+            }
+        }
+    });
+
     enemyObjects.forEach((object) => {
         
         object.Espherebound.copy(object.Esphere.userData.obj.geometry.boundingSphere).applyMatrix4(object.Esphere.userData.obj.matrixWorld);
@@ -567,4 +579,4 @@ function initializeThreeJS(map) {
     });
 }
 
-export { initializeThreeJS };
+export { initializeThreeJS }; 
